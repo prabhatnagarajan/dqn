@@ -1,0 +1,1 @@
+python play.py $1
