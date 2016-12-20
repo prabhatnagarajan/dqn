@@ -7,7 +7,6 @@
 import sys
 import os
 import thread
-from keylistener import *
 from random import randrange
 from ale_python_interface import ALEInterface
 
@@ -55,5 +54,4 @@ def play():
     print('Episode %d ended with score: %d' % (episode, total_reward))
     ale.reset_game()
   print 'Recording complete.'
-thread.start_new_thread( handle(), ("Thread-1", 2, ) )
-thread.start_new_thread( play(), ("Thread-2", 4, ) )
+play()
