@@ -56,3 +56,6 @@ def play():
     ale.reset_game()
   print 'Recording complete.'
 play()
+
+if __name__ == '__main__':
+  train()

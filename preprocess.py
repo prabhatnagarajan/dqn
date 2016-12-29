@@ -1,10 +1,13 @@
 import numpy as np
 from scipy.misc import imresize
 
+def preprocess(seq):
+	return None
+
 def get_max_value(frame, frame_prev):
 	return np.maximum(frame, frame_prev)
 
-def get_luminance(frame):
+def get_luminescence(frame):
 	R = frame[:,:, 0]
 	G = frame[:, :, 1]
 	B = frame[:, :, 2]
