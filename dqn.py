@@ -16,4 +16,5 @@ class DQN:
 			#TODO: select max action
 			return self.legal_actions[randrange(len(self.legal_actions))]
 
-
+	def set_epsilon(self, epsilon):
+		self.epsilon = epsilon

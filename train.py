@@ -1,18 +1,20 @@
 import sys
+import random
 from random import randrange
 from dqn import DQN
 from ale_python_interface import ALEInterface
 from collections import deque
 from collections import namedtuple
 import preprocess as pp
+import numpy as np
 
 #SETUP
-Experience = namedtuple('Experience', 'state action reward new_state')
+Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
 def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=10000,
     discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
     sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
-    fin_exp=1000000, replay_size=50000, noop_max=30):
+    fin_exp=1000000, replay_start_size=50000, noop_max=30):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
@@ -26,7 +28,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
     # Set USE_SDL to true to display the screen. ALE must be compilied
     # with SDL enabled for this to work. On OSX, pygame init is used to
     # proxy-call SDL_main.
-    USE_SDL = True
+    USE_SDL = False
     if USE_SDL:
       if sys.platform == 'darwin':
         import pygame
@@ -41,6 +43,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
 
     #initialize epsilon
     epsilon = init_epsilon
+    epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
     # create DQN agent
     agent = DQN(ale, 1000000, 32, epsilon)
@@ -57,7 +60,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
 
     num_frames = 0
     #TODO Change the episode ranges to be a function of frames
-    for episode in range(2):
+    while num_frames < 60000:
         img = ale.getScreenRGB()
         #initialize sequence with initial image
         seq = list()
@@ -82,16 +85,33 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
             #preprocess s_t+1
             proc_seq.append(pp.preprocess(seq))
             #store transition (phi(t), a_t, r_t, phi(t+1)) in replay_memory
-            exp = get_experience(proc_seq, action, reward, hist_len)
+            exp = get_experience(proc_seq, action, reward, hist_len, ale)
             replay_memory.append(exp)
-
+            #then we can do learning
+            if (num_frames > replay_start_size):
+                epsilon = epsilon - epsilon_delta
+                agent.set_epsilon(max(epsilon, fin_epsilon))
+                if num_frames % upd_freq == 0:
+                    #sample a minibatch of transitions
+                    sample = sample_minibatch(replay_memory, minibatch_size)
+                    #set label
+                    label = np.zeros(minibatch_size)
+                    for i in range(minibatch_size):
+                        if (sample[i].game_over):
+                            label[i] = sample[i].reward
+                        else:
+                            #TODO get max value from network
+                            label[i] = sample[i].reward + discount
+                    #do gradient descent using label
             num_frames = num_frames + 1
             total_reward += reward
-        print('Episode %d ended with score: %d' % (episode, total_reward))
+        #print('Episode %d ended with score: %d' % (episode, total_reward))
+        print('Episode ended with score: %d' % (total_reward))
         ale.reset_game()
     print "num frames is " + str(num_frames)
 
-def get_experience(proc_seq, action, reward, hist_len):
+#Returns hist_len most preprocessed frames and memory
+def get_experience(proc_seq, action, reward, hist_len, ale):
     tplus = len(proc_seq) - 1
     exp_state = list()
     exp_new_state = list()
@@ -113,8 +133,11 @@ def get_experience(proc_seq, action, reward, hist_len):
             exp_state.append(proc_seq[i])
         for i in range(len(proc_seq) - hist_len, len(proc_seq) - 1):
             exp_new_state.append(proc_seq[i])
-    exp = Experience(state=exp_state, action=action, reward=reward, new_state=exp_new_state)
+    exp = Experience(state=exp_state, action=action, reward=reward, new_state=exp_new_state, game_over=ale.game_over())
     return exp
+
+def sample_minibatch(replay_memory, minibatch_size):
+    return random.sample(replay_memory, minibatch_size)
     
 def cap_reward(reward):
     if reward > 0:
