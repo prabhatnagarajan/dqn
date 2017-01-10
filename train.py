@@ -7,6 +7,7 @@ from collections import deque
 from collections import namedtuple
 import preprocess as pp
 import numpy as np
+import cnn
 
 #SETUP
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
@@ -75,6 +76,8 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
             #skip frames by repeating action
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
+                if ale.game_over():
+                    break
             #cap reward
             reward = cap_reward(reward)
             # game state is just the pixels of the screen
