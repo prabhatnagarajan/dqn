@@ -18,3 +18,6 @@ class DQN:
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon
+
+	def train():
+		
