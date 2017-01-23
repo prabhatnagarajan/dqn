@@ -8,6 +8,7 @@ from collections import namedtuple
 import preprocess as pp
 import numpy as np
 import cnn
+import tensorflow as tf
 
 #SETUP
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
@@ -29,7 +30,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
     # Set USE_SDL to true to display the screen. ALE must be compilied
     # with SDL enabled for this to work. On OSX, pygame init is used to
     # proxy-call SDL_main.
-    USE_SDL = True
+    USE_SDL = False
     if USE_SDL:
       if sys.platform == 'darwin':
         import pygame
@@ -47,7 +48,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
     # create DQN agent
-    agent = DQN(ale, 1000000, 32, epsilon)
+    agent = DQN(ale, session,  1000000, 32, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getLegalActionSet()), tgt_update_freq)
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
@@ -95,17 +96,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
                 epsilon = epsilon - epsilon_delta
                 agent.set_epsilon(max(epsilon, fin_epsilon))
                 if num_frames % upd_freq == 0:
-                    #sample a minibatch of transitions
-                    sample = sample_minibatch(replay_memory, minibatch_size)
-                    #set label
-                    label = np.zeros(minibatch_size)
-                    for i in range(minibatch_size):
-                        if (sample[i].game_over):
-                            label[i] = sample[i].reward
-                        else:
-                            #TODO get max value from network
-                            label[i] = sample[i].reward + discount
-                    #do gradient descent using label
+                    agent.train(replay_memory, minibatch_size)
             num_frames = num_frames + 1
             total_reward += reward
         #print('Episode %d ended with score: %d' % (episode, total_reward))
@@ -151,4 +142,5 @@ def cap_reward(reward):
         return 0
 
 if __name__ == '__main__':
-    train()
+    with tf.Session() as session:
+        train(session)

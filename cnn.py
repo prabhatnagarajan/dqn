@@ -8,6 +8,9 @@ def make_bias_var(shape):
 	initial=tf.constant(0.1, shape=shape)
 	return tf.Variable(initial)
 
+def clip_error(err):
+	return tf.select(tf.abs(err) < 1.0, 0.5 * tf.square(err), tf.abs(err) - 0.5)
+
 #Implements the Convolutional Neural Network
 class CNN():
 
@@ -40,7 +43,7 @@ class CNN():
 		conv_layer_3 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv_layer_2, self.weights_conv3, strides=[1, 1, 1, 1], padding="SAME"), self.bias_conv3))
 
 		#Final fully connected hidden layer
-		conv3_output = tf.reshape(conv_layer3, [-1, 11 * 11 * 64])
+		conv3_output = tf.reshape(conv_layer_3, [-1, 11 * 11 * 64])
 		self.weights_fc1 = make_weight_var([11 * 11 * 64, 512])
 		self.bias_fc1 = make_bias_var([512])
 		fc1 = tf.nn.relu(tf.nn.bias_add(tf.matmul(conv3_output, self.weights_fc1), self.bias_fc1))
@@ -48,27 +51,24 @@ class CNN():
 		#Output Layer
 		self.weights_output = make_weight_var([512, num_legal_actions])
 		self.bias_output = make_bias_var([num_legal_actions])
+
 		#Q values
-		q = tf.nn.relu(tf.nn.bias_add(tf.multiply(fc1, self.weights_output), self.bias_output))
+		q = tf.nn.bias_add(tf.matmul(fc1, self.weights_output), self.bias_output)
 
 		#target
 		self.target = tf.placeholder(tf.float32, shape=[None])
 		
 		#List of legal actions
-		self.actions = tf.placeholder(uint8, shape=[None])
+		self.actions = tf.placeholder(tf.uint8, shape=[None])
 
 		#Compute Q Values of all 32 states
 		batch_Q = tf.reduce_sum(tf.multiply(q, tf.one_hot(self.actions, num_legal_actions)), axis=1)
 
 
-		self.diff = self.target - self.actions
+		self.diff = self.target - batch_Q
 
 		#Loss function
-		self.loss = tf.reduce_mean(clipped_error(self.diff))	
+		self.loss = tf.reduce_mean(clip_error(self.diff))	
 
 		#Train with RMS Prop
 		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum).minimize(self.loss)
-
-
-	def clip_error(err):
-		if (tf.select(tf.abs(err), 0.5 * tf.square(err), tf.abs(err) - 0.5)
