@@ -13,7 +13,7 @@ import tensorflow as tf
 #SETUP
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
-def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=10000,
+def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
     discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
     sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
     fin_exp=1000000, replay_start_size=50000, noop_max=30):
@@ -96,7 +96,7 @@ def train(minibatch_size=32, replay_capacity=1000, hist_len=4, tgt_update_freq=1
                 epsilon = epsilon - epsilon_delta
                 agent.set_epsilon(max(epsilon, fin_epsilon))
                 if num_frames % upd_freq == 0:
-                    agent.train(replay_memory, minibatch_size)
+                    agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
             total_reward += reward
         #print('Episode %d ended with score: %d' % (episode, total_reward))
@@ -129,9 +129,6 @@ def get_experience(proc_seq, action, reward, hist_len, ale):
             exp_new_state.append(proc_seq[i])
     exp = Experience(state=exp_state, action=action, reward=reward, new_state=exp_new_state, game_over=ale.game_over())
     return exp
-
-def sample_minibatch(replay_memory, minibatch_size):
-    return random.sample(replay_memory, minibatch_size)
     
 def cap_reward(reward):
     if reward > 0:

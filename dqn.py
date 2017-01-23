@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import random
 from random import randrange
 from random import uniform
 from cnn import CNN
@@ -70,7 +71,7 @@ class DQN:
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon
 
-	def compute_labels(sample, minibatch_size):
+	def compute_labels(self, sample, minibatch_size):
 	    label = np.zeros(minibatch_size)
 	    for i in range(minibatch_size):
 	        if (sample[i].game_over):
@@ -81,7 +82,7 @@ class DQN:
 	    		label[i] = sample[i].reward + discount * q_vals.max()
 	    return label
 
-	def reset_target_network():
+	def reset_target_network(self):
 		#Copy Weights
 		self.session.run(self.target_net.weights_conv1.assign(self.prediction_net.weights_conv1))
 		self.session.run(self.target_net.weights_conv2.assign(self.prediction_net.weights_conv2))
@@ -94,25 +95,32 @@ class DQN:
 		self.session.run(self.target_net.bias_conv3.assign(self.prediction_net.bias_conv3))
 		self.session.run(self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1))
 		self.session.run(self.target_net.bias_output.assign(self.prediction_net.bias_output))
+	
+	def sample_minibatch(self, replay_memory, minibatch_size):
+		return random.sample(replay_memory, minibatch_size)
 
 	def train(self, replay_memory, minibatch_size):
 	    #sample a minibatch of transitions
-	    sample = sample_minibatch(replay_memory, minibatch_size)
+	    sample = self.sample_minibatch(replay_memory, minibatch_size)
 	    #set label
-	    labels = compute_labels(sample, minibatch_size)
+	    labels = self.compute_labels(sample, minibatch_size)
 	    
-	    #do gradient descent using label
-	    #TODO: Reorganize Data?
+	    state = [x.state for x in sample]
+	    actions = [x.action for x in sample]
+
 	    feed_dict={
-	    self.prediction_net.state :,
-	    self.prediction_net.actions :,
-	    self.prediction_net.target : labels
+		    self.prediction_net.state : state,
+		    self.prediction_net.actions : actions,
+		    self.prediction_net.target : labels.tolist()
 	    }
+
+	    #Perform the gradient descent step
+	    self.prediction_net.train_agent.run(feed_dict=feed_dict)
 
 	    #increment update counter
 	    num_updates = num_updates + 1
 	    if num_updates % tgt_update_freq:
-	    	reset_target_network()
+	    	self.reset_target_network()
 
 	    if num_updates % chkpt_freq == 0:
 	    	print "Saving Weights"
