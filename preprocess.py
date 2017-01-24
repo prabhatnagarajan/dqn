@@ -26,4 +26,3 @@ def get_luminescence(frame):
 
 def get_resize_from_lum(lum_frame):
 	return imresize(lum_frame, (84, 84))
-

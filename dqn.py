@@ -5,15 +5,18 @@ from random import uniform
 from cnn import CNN
 import os
 import tensorflow as tf
+import numpy as np
 
 class DQN:
-	def __init__(self, ale, session, capacity, minibatch_size, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, tgt_update_freq):
+	def __init__(self, ale, session, capacity, minibatch_size, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, 
+		tgt_update_freq,discount):
 		self.ale = ale
 		self.session = session
 		self.capacity = capacity
 		self.legal_actions = ale.getLegalActionSet()
 		self.epsilon = epsilon
 		self.num_updates = 0
+		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
 		self.chkpt_freq = 50000
 		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
@@ -66,7 +69,10 @@ class DQN:
 		if (rand < self.epsilon):
 			return self.legal_actions[randrange(len(self.legal_actions))]
 		else:
-			return self.legal_actions[randrange(len(self.legal_actions))]
+			#Choose greedy action
+			q_vals = self.target_net.q.eval(
+	        		feed_dict = {self.prediction_net.state:[state]})
+			return q_vals.index(q_vals.max())
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon
@@ -79,7 +85,7 @@ class DQN:
 	        else:
 	        	q_vals = self.target_net.q.eval(
 	        		feed_dict = {self.target_net.state:[sample[i].new_state]})
-	    		label[i] = sample[i].reward + discount * q_vals.max()
+	    		label[i] = sample[i].reward + self.discount * q_vals.max()
 	    return label
 
 	def reset_target_network(self):
@@ -118,12 +124,10 @@ class DQN:
 	    self.prediction_net.train_agent.run(feed_dict=feed_dict)
 
 	    #increment update counter
-	    num_updates = num_updates + 1
-	    if num_updates % tgt_update_freq:
+	    self.num_updates = self.num_updates + 1
+	    if self.num_updates % self.tgt_update_freq:
 	    	self.reset_target_network()
 
-	    if num_updates % chkpt_freq == 0:
+	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
 	    	self.saver.save(self.session, os.path.join(checkpoint_directory, "model"), global_step = self.num_updates)
-
-

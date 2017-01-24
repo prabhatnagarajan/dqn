@@ -48,7 +48,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
     # create DQN agent
-    agent = DQN(ale, session,  1000000, 32, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getLegalActionSet()), tgt_update_freq)
+    agent = DQN(ale, session,  1000000, 32, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getLegalActionSet()), tgt_update_freq, discount)
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
@@ -109,7 +109,11 @@ def get_experience(proc_seq, action, reward, hist_len, ale):
     tplus = len(proc_seq) - 1
     exp_state = list()
     exp_new_state = list()
-    if len(proc_seq) < hist_len:
+    '''
+    If we don't have enough images to produce a history
+    '''
+    if len(proc_seq) < hist_len + 1:
+        #TODO Change how we do the previous state (make it not inlude the most recent image)
         num_copy = hist_len - (len(proc_seq) - 1)
         for i in range(num_copy):
             exp_state.append(proc_seq[0])
@@ -119,15 +123,14 @@ def get_experience(proc_seq, action, reward, hist_len, ale):
         num_copy = hist_len - len(proc_seq)
         for i in range(num_copy):
             exp_new_state.append(proc_seq[0])
-        for i in range(len(proc_seq) - 1):
+        for i in range(len(proc_seq)):
             exp_new_state.append(proc_seq[i])
-
     else:
-        for i in range(len(proc_seq) - 1 - hist_len, len(proc_seq) - 2):
+        for i in range(len(proc_seq) - 1 - hist_len, len(proc_seq) - 1):
             exp_state.append(proc_seq[i])
-        for i in range(len(proc_seq) - hist_len, len(proc_seq) - 1):
+        for i in range(len(proc_seq) - hist_len, len(proc_seq)):
             exp_new_state.append(proc_seq[i])
-    exp = Experience(state=exp_state, action=action, reward=reward, new_state=exp_new_state, game_over=ale.game_over())
+    exp = Experience(state=np.stack(np.array(exp_state),axis=2), action=action, reward=reward, new_state=np.stack(np.array(exp_new_state),axis=2), game_over=ale.game_over())
     return exp
     
 def cap_reward(reward):
