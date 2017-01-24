@@ -48,7 +48,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
     # create DQN agent
-    agent = DQN(ale, session,  1000000, 32, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getLegalActionSet()), tgt_update_freq, discount)
+    agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getLegalActionSet()), tgt_update_freq, discount)
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)

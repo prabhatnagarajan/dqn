@@ -8,7 +8,7 @@ import tensorflow as tf
 import numpy as np
 
 class DQN:
-	def __init__(self, ale, session, capacity, minibatch_size, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, 
+	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, 
 		tgt_update_freq,discount):
 		self.ale = ale
 		self.session = session
