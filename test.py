@@ -11,7 +11,7 @@ import tensorflow as tf
 #TODO Remove unused imports
 
 def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=0.01, epsilon=0.05, 
-    noop_max=30, num_tests=30):
+    noop_max=30, num_tests=30, learning_rate=0.0025, momentum=0.95, sq_momentum=0.95):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
@@ -39,10 +39,10 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
     ale.loadROM(sys.argv[1])
 
     # create DQN agent
-    agent = DQN(ale, session,  1000000, epsilon, None, None, None, hist_len, len(ale.getLegalActionSet()), None, discount)
+    # learning_rate and momentum are unused parameters (but needed)
+    agent = DQN(ale, session,  1000000, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getLegalActionSet()), None, discount)
 
     num_episodes = 0
-    #TODO Change the episode ranges to be a function of frames
     while num_episodes < num_tests:
         img = ale.getScreenRGB()
         #initialize sequence with initial image
@@ -51,8 +51,9 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
         proc_seq = list()
         proc_seq.append(pp.preprocess(seq))
         total_reward = 0
-        state = img
         while not ale.game_over():
+            state = get_state(proc_seq, hist_len)
+            print "Shape is " + str(np.shape(state))
             action = agent.get_action(state)
             #skip frames by repeating action
             for i in range(act_rpt):
@@ -60,10 +61,17 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
                 if ale.game_over():
                     break
             total_reward += reward
-        #print('Episode %d ended with score: %d' % (episode, total_reward))
         print('Episode ended with score: %d' % (total_reward))
         num_episodes = num_episodes + 1
         ale.reset_game()
+
+def get_state(proc_seq, hist_len):
+    if len(proc_seq) < hist_len + 1:
+        num_copy = hist_len - len(proc_seq)
+        state = ([proc_seq[0]] * num_copy) + (proc_seq)
+    else:
+        state = proc_seq[-hist_len:]
+    return np.stack(np.array(state), axis=2)
 
 if __name__ == '__main__':
     with tf.Session() as session:

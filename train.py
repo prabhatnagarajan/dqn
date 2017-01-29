@@ -53,13 +53,6 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
 
-    # Initialize action-value function Q with random weights h
-    #weights = ?????????
-    #----Handled with Tensorflow
-    # Initialize target action-value function Q^ with weights h2 5 h
-    #tgt_weights = weights
-    #----Handled with Tensorflow
-
     num_frames = 0
     #TODO Change the episode ranges to be a function of frames
     while num_frames < 60000:
@@ -70,8 +63,8 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         proc_seq = list()
         proc_seq.append(pp.preprocess(seq))
         total_reward = 0
-        state = img
         while not ale.game_over():
+            state = get_state(proc_seq, hist_len)
             action = agent.get_action(state)
             reward = 0
             #skip frames by repeating action
@@ -92,15 +85,16 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             exp = get_experience(proc_seq, action, reward, hist_len, ale)
             replay_memory.append(exp)
             #then we can do learning
-            if (num_frames > replay_start_size):
+            #TODO change 10000 to replay start size
+            if (num_frames > 10000):
                 epsilon = epsilon - epsilon_delta
                 agent.set_epsilon(max(epsilon, fin_epsilon))
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
             total_reward += reward
-        #print('Episode %d ended with score: %d' % (episode, total_reward))
         print('Episode ended with score: %d' % (total_reward))
+        print "number of frames is " + str(num_frames)
         ale.reset_game()
     print "num frames is " + str(num_frames)
 
@@ -132,6 +126,14 @@ def get_experience(proc_seq, action, reward, hist_len, ale):
             exp_new_state.append(proc_seq[i])
     exp = Experience(state=np.stack(np.array(exp_state),axis=2), action=action, reward=reward, new_state=np.stack(np.array(exp_new_state),axis=2), game_over=ale.game_over())
     return exp
+
+def get_state(proc_seq, hist_len):
+    if len(proc_seq) < hist_len + 1:
+        num_copy = hist_len - len(proc_seq)
+        state = ([proc_seq[0]] * num_copy) + (proc_seq)
+    else:
+        state = proc_seq[-hist_len:]
+    return state
     
 def cap_reward(reward):
     if reward > 0:

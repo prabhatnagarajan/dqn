@@ -9,7 +9,7 @@ import numpy as np
 
 class DQN:
 	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, 
-		tgt_update_freq,discount):
+		tgt_update_freq, discount):
 		self.ale = ale
 		self.session = session
 		self.capacity = capacity
@@ -18,10 +18,10 @@ class DQN:
 		self.num_updates = 0
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
-		self.chkpt_freq = 50000
+		self.chkpt_freq = 10000
 		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
 		self.target_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
-		self.checkpoint_directory = "neural_net_checkpoints"
+		self.checkpoint_directory = "checkpoints"
 
 		self.session.run(tf.global_variables_initializer())
 
@@ -57,7 +57,7 @@ class DQN:
 		checkpoint = tf.train.get_checkpoint_state(self.checkpoint_directory)
 		if checkpoint and checkpoint.model_checkpoint_path:
 			print "Loading the saved weights..."
-			self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
+			self.saver.restore(self.session, checkpoint.model_checkpoint_path)
 			self.counter = int(checkpoint.model_checkpoint_path.split('-')[-1])
 			print "Load complete."
 		else:
@@ -70,6 +70,7 @@ class DQN:
 			return self.legal_actions[randrange(len(self.legal_actions))]
 		else:
 			#Choose greedy action
+			print "Shape of state is " +str(np.shape(state))
 			q_vals = self.target_net.q.eval(
 	        		feed_dict = {self.prediction_net.state:[state]})
 			return q_vals.index(q_vals.max())
@@ -130,4 +131,4 @@ class DQN:
 
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
-	    	self.saver.save(self.session, os.path.join(checkpoint_directory, "model"), global_step = self.num_updates)
+	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.num_updates)
