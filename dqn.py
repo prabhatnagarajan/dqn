@@ -70,10 +70,10 @@ class DQN:
 			return self.legal_actions[randrange(len(self.legal_actions))]
 		else:
 			#Choose greedy action
-			print "Shape of state is " +str(np.shape(state))
-			q_vals = self.target_net.q.eval(
-	        		feed_dict = {self.prediction_net.state:[state]})
-			return q_vals.index(q_vals.max())
+			state = np.array([state], dtype=np.float32)
+			q_vals = self.prediction_net.q.eval(
+	        		feed_dict = {self.prediction_net.state: state})[0]
+			return np.argmax(q_vals)
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon

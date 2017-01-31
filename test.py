@@ -53,9 +53,9 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
         total_reward = 0
         while not ale.game_over():
             state = get_state(proc_seq, hist_len)
-            print "Shape is " + str(np.shape(state))
             action = agent.get_action(state)
             #skip frames by repeating action
+            reward = 0
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
                 if ale.game_over():
