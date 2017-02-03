@@ -131,8 +131,12 @@ def get_state(proc_seq, hist_len):
     if len(proc_seq) < hist_len + 1:
         num_copy = hist_len - len(proc_seq)
         state = ([proc_seq[0]] * num_copy) + (proc_seq)
+        if not np.shape(state) == (4, 84, 84):
+            print np.shape(state)
     else:
         state = proc_seq[-hist_len:]
+        if not np.shape(state) == (4, 84, 84):
+            print np.shape(state)
     return state
     
 def cap_reward(reward):

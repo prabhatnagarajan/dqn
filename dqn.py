@@ -132,3 +132,4 @@ class DQN:
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
 	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.num_updates)
+	    	print "Saved."
