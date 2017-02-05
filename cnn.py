@@ -62,7 +62,7 @@ class CNN():
 		self.actions = tf.placeholder(tf.uint8, shape=[None])
 
 		#Compute Q Values of all 32 states
-		batch_Q = tf.reduce_sum(tf.multiply(self.q, tf.one_hot(self.actions, num_legal_actions)), axis=1)
+		batch_Q = tf.reduce_sum(tf.mul(self.q, tf.one_hot(self.actions, num_legal_actions)), reduction_indices=1)
 
 
 		self.diff = self.target - batch_Q

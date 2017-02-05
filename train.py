@@ -55,7 +55,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
 
     num_frames = 0
     #TODO Change the episode ranges to be a function of frames
-    while num_frames < 60000:
+    while num_frames < 30000000:
         img = ale.getScreenRGB()
         #initialize sequence with initial image
         seq = list()
@@ -131,12 +131,13 @@ def get_state(proc_seq, hist_len):
     if len(proc_seq) < hist_len + 1:
         num_copy = hist_len - len(proc_seq)
         state = ([proc_seq[0]] * num_copy) + (proc_seq)
-        if not np.shape(state) == (4, 84, 84):
+        if not (np.shape(state) == (4, 84, 84)):
             print np.shape(state)
     else:
         state = proc_seq[-hist_len:]
-        if not np.shape(state) == (4, 84, 84):
+        if not (np.shape(state) == (4, 84, 84)):
             print np.shape(state)
+    #USE NUMPY STACK
     return state
     
 def cap_reward(reward):

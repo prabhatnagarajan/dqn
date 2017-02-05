@@ -70,9 +70,13 @@ class DQN:
 			return self.legal_actions[randrange(len(self.legal_actions))]
 		else:
 			#Choose greedy action
-			state = np.array([state], dtype=np.float32)
+			mod_state = np.array([state], dtype=np.float32)
+			if not (np.shape(mod_state) == (1, 84, 84, 4)):
+				print "Invalid shape"
+				print "Orig Shape " + str(np.shape(state))
+				print "Mod shape " + str(np.shape(mod_state))
 			q_vals = self.prediction_net.q.eval(
-	        		feed_dict = {self.prediction_net.state: state})[0]
+	        		feed_dict = {self.prediction_net.state: mod_state})[0]
 			return np.argmax(q_vals)
 
 	def set_epsilon(self, epsilon):
