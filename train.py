@@ -86,7 +86,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             replay_memory.append(exp)
             #then we can do learning
             #TODO change 10000 to replay start size
-            if (num_frames > 10000):
+            if (num_frames > replay_start_size):
                 epsilon = epsilon - epsilon_delta
                 agent.set_epsilon(max(epsilon, fin_epsilon))
                 if num_frames % upd_freq == 0:
