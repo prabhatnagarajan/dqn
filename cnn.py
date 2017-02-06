@@ -71,4 +71,5 @@ class CNN():
 		self.loss = tf.reduce_mean(clip_error(self.diff))	
 
 		#Train with RMS Prop
-		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum).minimize(self.loss)
+		#TODO perhaps remove epsilon and allow default
+		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum, epsilon=0.01).minimize(self.loss)
