@@ -107,7 +107,6 @@ def get_experience(proc_seq, action, reward, hist_len, ale):
     If we don't have enough images to produce a history
     '''
     if len(proc_seq) < hist_len + 1:
-        #TODO Change how we do the previous state (make it not inlude the most recent image)
         num_copy = hist_len - (len(proc_seq) - 1)
         for i in range(num_copy):
             exp_state.append(proc_seq[0])
@@ -137,7 +136,8 @@ def get_state(proc_seq, hist_len):
         state = proc_seq[-hist_len:]
         if not (np.shape(state) == (4, 84, 84)):
             print np.shape(state)
-    #USE NUMPY STACK
+    #makes it 84 x 84 x hist_len (4, 84, 84) -> (84, 84, 4)
+    return np.moveaxis(state, 0, -1)
     return state
     
 def cap_reward(reward):
