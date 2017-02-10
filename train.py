@@ -55,6 +55,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
 
     num_frames = 0
     #TODO Change the episode ranges to be a function of frames
+    episode_count = 1
     while num_frames < 30000000:
         img = ale.getScreenRGB()
         #initialize sequence with initial image
@@ -93,9 +94,10 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
                     agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
             total_reward += reward
-        print('Episode ended with score: %d' % (total_reward))
-        print "number of frames is " + str(num_frames)
+        print('Episode '+ str(episode_count) +' ended with score: %d' % (total_reward))
+        print "Number of frames is " + str(num_frames)
         ale.reset_game()
+        episode_count = episode_count + 1
     print "num frames is " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory
