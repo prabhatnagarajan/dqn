@@ -9,6 +9,7 @@ import preprocess as pp
 import numpy as np
 import cnn
 import tensorflow as tf
+from time import time
 
 #SETUP
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
@@ -91,7 +92,10 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
                 epsilon = epsilon - epsilon_delta
                 agent.set_epsilon(max(epsilon, fin_epsilon))
                 if num_frames % upd_freq == 0:
+                    start = time()
                     agent.train(replay_memory, minibatch_size) 
+                    end = time()
+                    print "Training took (in seconds): " + str(end - start)
             num_frames = num_frames + 1
             total_reward += reward
         print('Episode '+ str(episode_count) +' ended with score: %d' % (total_reward))

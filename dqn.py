@@ -18,7 +18,7 @@ class DQN:
 		self.num_updates = 0
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
-		self.chkpt_freq = 10000
+		self.chkpt_freq = 1000
 		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
 		self.target_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
 		self.checkpoint_directory = "checkpoints"
