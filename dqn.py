@@ -6,6 +6,7 @@ from cnn import CNN
 import os
 import tensorflow as tf
 import numpy as np
+from time import time
 
 class DQN:
 	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, 
@@ -18,9 +19,23 @@ class DQN:
 		self.num_updates = 0
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
-		self.chkpt_freq = 1000
+		self.chkpt_freq = 10000
 		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
 		self.target_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
+		self.reset_target_network = [
+		#Copy Weights
+		self.target_net.weights_conv1.assign(self.prediction_net.weights_conv1),
+		self.target_net.weights_conv2.assign(self.prediction_net.weights_conv2),
+		self.target_net.weights_conv3.assign(self.prediction_net.weights_conv3),
+		self.target_net.weights_fc1.assign(self.prediction_net.weights_fc1),
+		self.target_net.weights_output.assign(self.prediction_net.weights_output),
+		#Copy Bias
+		self.target_net.bias_conv1.assign(self.prediction_net.bias_conv1),
+		self.target_net.bias_conv2.assign(self.prediction_net.bias_conv2),
+		self.target_net.bias_conv3.assign(self.prediction_net.bias_conv3),
+		self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1),
+		self.target_net.bias_output.assign(self.prediction_net.bias_output)]
+
 		self.checkpoint_directory = "checkpoints"
 
 		self.session.run(tf.global_variables_initializer())
@@ -93,29 +108,18 @@ class DQN:
 	    		label[i] = sample[i].reward + self.discount * q_vals.max()
 	    return label
 
-	def reset_target_network(self):
-		#Copy Weights
-		self.session.run(self.target_net.weights_conv1.assign(self.prediction_net.weights_conv1))
-		self.session.run(self.target_net.weights_conv2.assign(self.prediction_net.weights_conv2))
-		self.session.run(self.target_net.weights_conv3.assign(self.prediction_net.weights_conv3))
-		self.session.run(self.target_net.weights_fc1.assign(self.prediction_net.weights_fc1))
-		self.session.run(self.target_net.weights_output.assign(self.prediction_net.weights_output))
-		#Copy Bias
-		self.session.run(self.target_net.bias_conv1.assign(self.prediction_net.bias_conv1))
-		self.session.run(self.target_net.bias_conv2.assign(self.prediction_net.bias_conv2))
-		self.session.run(self.target_net.bias_conv3.assign(self.prediction_net.bias_conv3))
-		self.session.run(self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1))
-		self.session.run(self.target_net.bias_output.assign(self.prediction_net.bias_output))
+	def copy_network(self):
+		self.session.run(self.reset_target_network)
 	
 	def sample_minibatch(self, replay_memory, minibatch_size):
 		return random.sample(replay_memory, minibatch_size)
 
 	def train(self, replay_memory, minibatch_size):
 	    #sample a minibatch of transitions
+	    tf.get_default_graph().finalize()
 	    sample = self.sample_minibatch(replay_memory, minibatch_size)
 	    #set label
 	    labels = self.compute_labels(sample, minibatch_size)
-	    
 	    state = [x.state for x in sample]
 	    actions = [x.action for x in sample]
 
@@ -127,11 +131,10 @@ class DQN:
 
 	    #Perform the gradient descent step
 	    self.prediction_net.train_agent.run(feed_dict=feed_dict)
-
 	    #increment update counter
 	    self.num_updates = self.num_updates + 1
 	    if self.num_updates % self.tgt_update_freq:
-	    	self.reset_target_network()
+	    	self.copy_network()
 
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
