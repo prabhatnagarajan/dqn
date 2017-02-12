@@ -25,7 +25,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
     # Set USE_SDL to true to display the screen. ALE must be compilied
     # with SDL enabled for this to work. On OSX, pygame init is used to
     # proxy-call SDL_main.
-    USE_SDL = True
+    USE_SDL = False
     if USE_SDL:
       if sys.platform == 'darwin':
         import pygame
