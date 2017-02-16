@@ -31,7 +31,8 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     #Changes repeat action probability from default of 0.25
     ale.setFloat('repeat_action_probability', 0.0)
     #Automates Frame Skipping - changes from default value of 1
-    ale.setInt('frame_skip', act_rpt)
+    #removes frame skipping
+    #ale.setInt('frame_skip', act_rpt)
 
     # Set USE_SDL to true to display the screen. ALE must be compilied
     # with SDL enabled for this to work. On OSX, pygame init is used to
@@ -54,7 +55,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
     # create DQN agent
-    agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getLegalActionSet()), tgt_update_freq, discount)
+    agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
@@ -71,7 +72,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     num_frames = 0
     #TODO Change the episode ranges to be a function of frames
     episode_count = 1
-    while ale.getFrameNumber() < 30000000:
+    while num_frames< 30000000:
         img = ale.getScreenRGB()
         #initialize sequence with initial image
         seq = list()
@@ -82,13 +83,13 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         while not ale.game_over():
             state = get_state(proc_seq, hist_len)
             action = agent.get_action(state)
-            #reward = 0
+            reward = 0
             
             #skip frames by repeating action
-            #for i in range(act_rpt):
-            #    reward = reward + ale.act(action)
-            #    if ale.game_over():
-            #        break
+            for i in range(act_rpt):
+                reward = reward + ale.act(action)
+                if ale.game_over():
+                    break
             reward = ale.act(action)
 
             total_reward += reward
@@ -110,8 +111,9 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
                 agent.set_epsilon(epsilon)
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
+            num_frames = num_frames + 1
         print('Episode '+ str(episode_count) +' ended with score: %d' % (total_reward))
-        print "Number of frames is " + str(ale.getFrameNumber())
+        print "Number of frames is " + str(num_frames)
         ale.reset_game()
         episode_count = episode_count + 1
         if episode_count % train_save_frequency:

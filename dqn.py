@@ -9,12 +9,12 @@ import numpy as np
 from time import time
 
 class DQN:
-	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions, 
+	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, min_num_actions, 
 		tgt_update_freq, discount):
 		self.ale = ale
 		self.session = session
 		self.capacity = capacity
-		self.legal_actions = ale.getLegalActionSet()
+		self.minimal_action_set = ale.getMinimalActionSet()
 		self.epsilon = epsilon
 		self.num_updates = 0
 		self.discount = discount
@@ -82,7 +82,7 @@ class DQN:
 	def get_action(self, state):
 		rand = uniform(0,1)
 		if (rand < self.epsilon):
-			return self.legal_actions[randrange(len(self.legal_actions))]
+			return self.minimal_action_set[randrange(len(self.minimal_action_set))]
 		else:
 			#Choose greedy action
 			mod_state = np.array([state], dtype=np.float32)
