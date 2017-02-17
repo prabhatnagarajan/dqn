@@ -63,7 +63,6 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     num_frames = 0
     episode_num = 1
     while num_frames< 30000000:
-        img = ale.getScreenRGB()
         #initialize sequence with initial image
         seq = list()
 

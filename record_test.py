@@ -15,7 +15,7 @@ import tensorflow as tf
 #TODO Remove unused imports
 
 def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=0.01, epsilon=0.05, 
-    noop_max=30, num_tests=30, learning_rate=0.0025, momentum=0.95, sq_momentum=0.95):
+    no_op_max=30, num_tests=30, learning_rate=0.0025, momentum=0.95, sq_momentum=0.95):
     #Create ALE object
     if len(sys.argv) < 3:
       print('Usage: %s rom_file record_screen_dir' % sys.argv[0])
@@ -60,39 +60,45 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
 
     num_episodes = 0
     while num_episodes < num_tests:
-        img = ale.getScreenGrayscale()
         #initialize sequence with initial image
         seq = list()
         #We only have one image, we cannot combine two images
-        proc_seq = list()
-        seq.append(pp.preprocess(img, img))
-        proc_seq.append(pp.preprocess(img, img))
+        perform_no_ops(ale, no_op_max, preprocess_stack, seq)
         #proc_seq.append(pp.preprocess(seq))
         total_reward = 0
 
         while not ale.game_over():
-            state = get_state(proc_seq, hist_len)
+            state = get_state(seq, hist_len)
             action = agent.get_action(state)
             #skip frames by repeating action
             reward = 0
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
-                preprocess_stack.append(ale.getScreenGrayscale())
-                if ale.game_over():
-                    break
-            proc_seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
+                preprocess_stack.append(ale.getScreenRGB())
+            seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
             total_reward += reward
         print('Episode ended with score: %d' % (total_reward))
         num_episodes = num_episodes + 1
         ale.reset_game()
 
-def get_state(proc_seq, hist_len):
-    if len(proc_seq) < hist_len + 1:
-        num_copy = hist_len - len(proc_seq)
-        state = ([proc_seq[0]] * num_copy) + (proc_seq)
+def get_state(seq, hist_len):
+    if len(seq) < hist_len + 1:
+        num_copy = hist_len - len(seq)
+        state = ([seq[0]] * num_copy) + (seq)
     else:
-        state = proc_seq[-hist_len:]
+        state = seq[-hist_len:]
     return np.stack(np.array(state), axis=2)
+
+def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
+    #perform nullops
+    for _ in range(np.random.randint(no_op_max + 1)):
+        ale.act(0)
+    #fill the preprocessing stack
+    ale.act(0)
+    preprocess_stack.append(ale.getScreenRGB())
+    ale.act(0)
+    preprocess_stack.append(ale.getScreenRGB())
+    seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[0]))
 
 if __name__ == '__main__':
     with tf.Session() as session:
