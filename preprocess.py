@@ -6,13 +6,13 @@ import cv2
 '''
 Arguments - inputs two grayscale images that we take the maximum of
 '''
+#TODO REMOVE THIS METHOD
 def process(grayscale1, grayscale2):
 	return resize(get_max_value(grayscale1, grayscale2))
 
 #returns preprocessed value of most recent frame
 #TODO, remove this method
 def preprocess(frame1, frame2):
-	imshow(resize(grayscale(np.maximum(frame1, frame2))))
 	return resize(grayscale(np.maximum(frame1, frame2)))
 
 #Takes in an rgb image returns the grayscale

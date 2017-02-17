@@ -66,15 +66,13 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         img = ale.getScreenRGB()
         #initialize sequence with initial image
         seq = list()
-        #We only have one image, we cannot combine two images
-        proc_seq = list()
-        seq.append(pp.preprocess(img, img))
-        proc_seq.append(pp.preprocess(img, img))
+
         #proc_seq.append(pp.preprocess(seq))
+        perform_no_ops(ale, no_op_max, preprocess_stack, seq)
         total_reward = 0
         while not ale.game_over():
             #state = get_state(proc_seq, hist_len)
-            state = get_state(proc_seq, hist_len)
+            state = get_state(seq, hist_len)
             action = agent.get_action(state)
             reward = 0
             
@@ -90,18 +88,16 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             #cap reward
             reward = cap_reward(reward)
 
-            # game state is just the pixels of the screen
+            #game state is just the pixels of the screen
             #Order shouldn't matter between images
             img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
             
             #set s(t+1) = s_t, a_t, x_t+1
-            seq.append(action)
             seq.append(img)
-            proc_seq.append(img)
 
             #store transition (phi(t), a_t, r_t, phi(t+1)) in replay_memory
             #Does getExperience assume a certain input format for processed sequence?
-            exp = get_experience(proc_seq, action, reward, hist_len, ale)
+            exp = get_experience(seq, action, reward, hist_len, ale)
             replay_memory.append(exp)
             #Training
             if (num_frames > replay_start_size):
@@ -117,30 +113,29 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     print "Number " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory
-def get_experience(proc_seq, action, reward, hist_len, ale):
-    tplus = len(proc_seq) - 1
+def get_experience(seq, action, reward, hist_len, ale):
     exp_state = list()
     exp_new_state = list()
     '''
     If we don't have enough images to produce a history
     '''
-    if len(proc_seq) < hist_len + 1:
-        num_copy = hist_len - (len(proc_seq) - 1)
+    if len(seq) < hist_len + 1:
+        num_copy = hist_len - (len(seq) - 1)
         for i in range(num_copy):
-            exp_state.append(proc_seq[0])
-        for i in range(len(proc_seq) - 1):
-            exp_state.append(proc_seq[i])
+            exp_state.append(seq[0])
+        for i in range(len(seq) - 1):
+            exp_state.append(seq[i])
 
-        num_copy = hist_len - len(proc_seq)
+        num_copy = hist_len - len(seq)
         for i in range(num_copy):
-            exp_new_state.append(proc_seq[0])
-        for i in range(len(proc_seq)):
-            exp_new_state.append(proc_seq[i])
+            exp_new_state.append(seq[0])
+        for i in range(len(seq)):
+            exp_new_state.append(seq[i])
     else:
-        for i in range(len(proc_seq) - 1 - hist_len, len(proc_seq) - 1):
-            exp_state.append(proc_seq[i])
-        for i in range(len(proc_seq) - hist_len, len(proc_seq)):
-            exp_new_state.append(proc_seq[i])
+        for i in range(len(seq) - 1 - hist_len, len(seq) - 1):
+            exp_state.append(seq[i])
+        for i in range(len(seq) - hist_len, len(seq)):
+            exp_new_state.append(seq[i])
     exp = Experience(state=np.stack(np.array(exp_state),axis=2), action=action, reward=reward, new_state=np.stack(np.array(exp_new_state),axis=2), game_over=ale.game_over())
     return exp
 
@@ -165,6 +160,17 @@ def cap_reward(reward):
         return -1
     else:
         return 0
+
+def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
+    #perform nullops
+    for _ in range(np.random.randint(no_op_max + 1)):
+        ale.act(0)
+    #fill the preprocessing stack
+    ale.act(0)
+    preprocess_stack.append(ale.getScreenRGB())
+    ale.act(0)
+    preprocess_stack.append(ale.getScreenRGB())
+    seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[0]))
 
 if __name__ == '__main__':
     with tf.Session() as session:

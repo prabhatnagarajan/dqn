@@ -54,7 +54,9 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
         proc_seq = list()
         proc_seq.append(pp.preprocess(img,img))
         total_reward = 0
-        while not ale.game_over():
+        episode_done = False
+        lives = ale.lives()
+        while not episode_done:
             state = get_state(proc_seq, hist_len)
             action = agent.get_action(state)
             #skip frames by repeating action
@@ -62,10 +64,10 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
                 preprocess_stack.append(ale.getScreenGrayscale())
-                if ale.game_over():
-                    break
             proc_seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
             total_reward += reward
+            #we end episode if game is over or life is lost
+            episode_done = ale.game_over() or (ale.lives() < lives)
         print('Episode ended with score: %d' % (total_reward))
         num_episodes = num_episodes + 1
         ale.reset_game()
