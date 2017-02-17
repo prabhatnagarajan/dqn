@@ -70,7 +70,9 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         #proc_seq.append(pp.preprocess(seq))
         perform_no_ops(ale, no_op_max, preprocess_stack, seq)
         total_reward = 0
-        while not ale.game_over():
+        lives = ale.lives()
+        episode_done = False
+        while not episode_done:
             #state = get_state(proc_seq, hist_len)
             state = get_state(seq, hist_len)
             action = agent.get_action(state)
@@ -106,6 +108,8 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
+            #we end episode if life is lost or game is over
+            episode_done = ale.game_over() or (ale.lives() < lives)
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
         print "Number of frames is " + str(num_frames)
         ale.reset_game()
