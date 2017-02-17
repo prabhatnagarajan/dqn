@@ -30,9 +30,6 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     ale.setInt('random_seed', 123)
     #Changes repeat action probability from default of 0.25
     ale.setFloat('repeat_action_probability', 0.0)
-    #Automates Frame Skipping - changes from default value of 1
-    #removes frame skipping
-    #ale.setInt('frame_skip', act_rpt)
 
     # Set USE_SDL to true to display the screen. ALE must be compilied
     # with SDL enabled for this to work. On OSX, pygame init is used to
@@ -54,7 +51,6 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     epsilon = init_epsilon
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
-    print "Actions are " + str(ale.getMinimalActionSet())
     # create DQN agent
     agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
 
@@ -64,19 +60,9 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     #Store the most recent two images
     preprocess_stack = deque([], 2)
 
-    #Load any saved memory
-    #if os.path.isfile(memory_file):
-    #    memory = np.load(memory_file)
-    #    for item in memory:
-    #        replay_memory.append(Experience._make(item))
-    
-    #Load a saved Epsilon - error saving epsilon
-    #if os.path.isfile(epsilon_file):
-    #    epsilon = float(np.load(epsilon_file))
 
     num_frames = 0
-    #TODO Change the episode ranges to be a function of frames
-    episode_count = 1
+    episode_num = 1
     while num_frames< 30000000:
         img = ale.getScreenGrayscale()
         #initialize sequence with initial image
@@ -96,7 +82,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             #skip frames by repeating action
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
-                #add the images on
+                #add the images on stack 
                 preprocess_stack.append(ale.getScreenGrayscale())
                 if ale.game_over():
                     break
@@ -108,34 +94,27 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             # game state is just the pixels of the screen
             #Order shouldn't matter between images
             img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
+            
             #set s(t+1) = s_t, a_t, x_t+1
             seq.append(action)
             seq.append(img)
             proc_seq.append(img)
 
-            #preprocess s_t+1
-
-            #proc_seq.append(pp.preprocess(seq))
-
             #store transition (phi(t), a_t, r_t, phi(t+1)) in replay_memory
             #Does getExperience assume a certain input format for processed sequence?
             exp = get_experience(proc_seq, action, reward, hist_len, ale)
             replay_memory.append(exp)
-            #then we can do learning
+            #Training
             if (num_frames > replay_start_size):
                 epsilon = max(epsilon - epsilon_delta, fin_epsilon)
                 agent.set_epsilon(epsilon)
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
-        print('Episode '+ str(episode_count) +' ended with score: %d' % (total_reward))
+        print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
         print "Number of frames is " + str(num_frames)
         ale.reset_game()
-        episode_count = episode_count + 1
-        #if episode_count % train_save_frequency:
-            #Error saving replay memory because it is a deque
-            #np.save(replay_memory, memory_file)
-            #np.save([epsilon], epsilon_file)
+        episode_num = episode_num + 1
     print "Number " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory

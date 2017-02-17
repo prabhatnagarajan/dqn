@@ -40,11 +40,14 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
 
     # create DQN agent
     # learning_rate and momentum are unused parameters (but needed)
-    agent = DQN(ale, session,  1000000, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getLegalActionSet()), None, discount)
+    agent = DQN(ale, session,  1000000, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount)
+    
+    #Store the most recent two images
+    preprocess_stack = deque([], 2)
 
     num_episodes = 0
     while num_episodes < num_tests:
-        img = ale.getScreenRGB()
+        img = ale.getScreenGrayscale()
         #initialize sequence with initial image
         seq = list()
         seq.append(img)
@@ -58,8 +61,10 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
             reward = 0
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
+                preprocess_stack.append(ale.getScreenGrayscale())
                 if ale.game_over():
                     break
+            proc_seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
             total_reward += reward
         print('Episode ended with score: %d' % (total_reward))
         num_episodes = num_episodes + 1
