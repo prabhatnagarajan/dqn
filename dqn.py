@@ -88,7 +88,7 @@ class DQN:
 			mod_state = np.array([state], dtype=np.float32)
 			q_vals = self.prediction_net.q.eval(
 	        		feed_dict = {self.prediction_net.state: mod_state})[0]
-			return self.minimal_action_set(np.argmax(q_vals))
+			return self.minimal_action_set[np.argmax(q_vals)]
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon

@@ -52,7 +52,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
         seq = list()
         seq.append(img)
         proc_seq = list()
-        proc_seq.append(pp.preprocess(seq))
+        proc_seq.append(pp.preprocess(img,img))
         total_reward = 0
         while not ale.game_over():
             state = get_state(proc_seq, hist_len)
