@@ -54,33 +54,41 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     epsilon = init_epsilon
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
 
+    print "Actions are " + str(ale.getMinimalActionSet())
     # create DQN agent
     agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
 
+    #Store the most recent two images
+    preprocess_stack = deque([], 2)
+
     #Load any saved memory
-    if os.path.isfile(memory_file):
-        memory = np.load(memory_file)
-        for item in memory:
-            replay_memory.append(Experience._make(item))
-    #Load a saved Epsilon
-    if o.spath.isfile(epsilon_file):
-        epsilon = float(np.load(epsilon_file))
+    #if os.path.isfile(memory_file):
+    #    memory = np.load(memory_file)
+    #    for item in memory:
+    #        replay_memory.append(Experience._make(item))
+    
+    #Load a saved Epsilon - error saving epsilon
+    #if os.path.isfile(epsilon_file):
+    #    epsilon = float(np.load(epsilon_file))
 
     num_frames = 0
     #TODO Change the episode ranges to be a function of frames
     episode_count = 1
     while num_frames< 30000000:
-        img = ale.getScreenRGB()
+        img = ale.getScreenGrayscale()
         #initialize sequence with initial image
         seq = list()
-        seq.append(img)
+        #We only have one image, we cannot combine two images
         proc_seq = list()
-        proc_seq.append(pp.preprocess(seq))
+        seq.append(pp.preprocess(img, img))
+        proc_seq.append(pp.preprocess(img, img))
+        #proc_seq.append(pp.preprocess(seq))
         total_reward = 0
         while not ale.game_over():
+            #state = get_state(proc_seq, hist_len)
             state = get_state(proc_seq, hist_len)
             action = agent.get_action(state)
             reward = 0
@@ -88,21 +96,29 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             #skip frames by repeating action
             for i in range(act_rpt):
                 reward = reward + ale.act(action)
+                #add the images on
+                preprocess_stack.append(ale.getScreenGrayscale())
                 if ale.game_over():
                     break
-            reward = ale.act(action)
 
             total_reward += reward
             #cap reward
             reward = cap_reward(reward)
+
             # game state is just the pixels of the screen
-            img = ale.getScreenRGB()
+            #Order shouldn't matter between images
+            img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
             #set s(t+1) = s_t, a_t, x_t+1
             seq.append(action)
             seq.append(img)
+            proc_seq.append(img)
+
             #preprocess s_t+1
-            proc_seq.append(pp.preprocess(seq))
+
+            #proc_seq.append(pp.preprocess(seq))
+
             #store transition (phi(t), a_t, r_t, phi(t+1)) in replay_memory
+            #Does getExperience assume a certain input format for processed sequence?
             exp = get_experience(proc_seq, action, reward, hist_len, ale)
             replay_memory.append(exp)
             #then we can do learning
@@ -116,9 +132,10 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         print "Number of frames is " + str(num_frames)
         ale.reset_game()
         episode_count = episode_count + 1
-        if episode_count % train_save_frequency:
-            np.save(replay_memory, memory_file)
-            np.save(epsilon, epsilon_file)
+        #if episode_count % train_save_frequency:
+            #Error saving replay memory because it is a deque
+            #np.save(replay_memory, memory_file)
+            #np.save([epsilon], epsilon_file)
     print "Number " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory
@@ -149,14 +166,14 @@ def get_experience(proc_seq, action, reward, hist_len, ale):
     exp = Experience(state=np.stack(np.array(exp_state),axis=2), action=action, reward=reward, new_state=np.stack(np.array(exp_new_state),axis=2), game_over=ale.game_over())
     return exp
 
-def get_state(proc_seq, hist_len):
-    if len(proc_seq) < hist_len + 1:
-        num_copy = hist_len - len(proc_seq)
-        state = ([proc_seq[0]] * num_copy) + (proc_seq)
+def get_state(seq, hist_len):
+    if len(seq) < hist_len + 1:
+        num_copy = hist_len - len(seq)
+        state = ([seq[0]] * num_copy) + (seq)
         if not (np.shape(state) == (4, 84, 84)):
             print np.shape(state)
     else:
-        state = proc_seq[-hist_len:]
+        state = seq[-hist_len:]
         if not (np.shape(state) == (4, 84, 84)):
             print np.shape(state)
     #makes it 84 x 84 x hist_len (4, 84, 84) -> (84, 84, 4)

@@ -20,8 +20,8 @@ class DQN:
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
 		self.chkpt_freq = 10000
-		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
-		self.target_net = CNN(learning_rate, momentum, sq_momentum, hist_len, num_legal_actions)
+		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
+		self.target_net = CNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.reset_target_network = [
 		#Copy Weights
 		self.target_net.weights_conv1.assign(self.prediction_net.weights_conv1),
@@ -88,7 +88,7 @@ class DQN:
 			mod_state = np.array([state], dtype=np.float32)
 			q_vals = self.prediction_net.q.eval(
 	        		feed_dict = {self.prediction_net.state: mod_state})[0]
-			return np.argmax(q_vals)
+			return self.minimal_action_set(np.argmax(q_vals))
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon

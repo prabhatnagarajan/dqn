@@ -1,8 +1,17 @@
 import numpy as np
 from scipy.misc import imresize
+from scipy.misc import imshow
+import cv2
+
+'''
+Arguments - inputs two grayscale images that we take the maximum of
+'''
+def preprocess(grayscale1, grayscale2):
+	return resize(get_max_value(grayscale1, grayscale2))
 
 #returns preprocessed value of most recent frame
-def preprocess(seq):
+#TODO, remove this method
+def process(seq):
 	if len(seq) <= 1:
 		#get most recent frame
 		frame = seq[len(seq) - 1]
@@ -26,3 +35,6 @@ def get_luminescence(frame):
 
 def get_resize_from_lum(lum_frame):
 	return imresize(lum_frame, (84, 84))
+
+def resize(image):
+	return cv2.resize(image, (84, 84))

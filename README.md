@@ -10,6 +10,7 @@ This repository will contain a python implementation of DQN used for atari games
 - Avconv
 - SciPy
 - TensorFlow 0.12.0
+- opencv-python-3.2.0.6
 
 ## License
 
