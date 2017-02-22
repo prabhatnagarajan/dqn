@@ -87,7 +87,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
 
             total_reward += reward
             #cap reward
-            reward = cap_reward(reward)
+            reward = np.clip(reward, -1, 1)
 
             #game state is just the pixels of the screen
             #Order shouldn't matter between images
@@ -155,14 +155,6 @@ def get_state(seq, hist_len):
     #makes it 84 x 84 x hist_len (4, 84, 84) -> (84, 84, 4)
     return np.moveaxis(state, 0, -1)
     return state
-    
-def cap_reward(reward):
-    if reward > 0:
-        return 1
-    elif reward < 0:
-        return -1
-    else:
-        return 0
 
 def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     #perform nullops
