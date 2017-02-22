@@ -133,8 +133,8 @@ def get_experience(seq, action, reward, hist_len, ale):
             exp_new_state.append(seq[i])
     else:
         exp_state = seq[-hist_len - 1 : -1]
-        exp_new_state == seq[-hist_len:]
-    exp = Experience(state=np.stack(np.array(exp_state),axis=2), action=action, reward=reward, new_state=np.stack(np.array(exp_new_state),axis=2), game_over=ale.game_over())
+        exp_new_state = seq[-hist_len:]
+    exp = Experience(state=np.moveaxis(exp_state, 0, -1), action=action, reward=reward, new_state=np.moveaxis(exp_new_state, 0, -1), game_over=ale.game_over())
     return exp
 
 def get_state(seq, hist_len):
