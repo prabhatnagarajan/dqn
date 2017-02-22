@@ -82,8 +82,6 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
                 reward = reward + ale.act(action)
                 #add the images on stack 
                 preprocess_stack.append(ale.getScreenRGB())
-                if ale.game_over():
-                    break
 
             total_reward += reward
             #cap reward
