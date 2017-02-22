@@ -12,7 +12,6 @@ import cnn
 import tensorflow as tf
 from time import time
 
-#SETUP
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
 def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
@@ -62,7 +61,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
 
     num_frames = 0
     episode_num = 1
-    while num_frames< 30000000:
+    while num_frames < 30000000:
         #initialize sequence with initial image
         seq = list()
 
@@ -133,10 +132,8 @@ def get_experience(seq, action, reward, hist_len, ale):
         for i in range(len(seq)):
             exp_new_state.append(seq[i])
     else:
-        for i in range(len(seq) - 1 - hist_len, len(seq) - 1):
-            exp_state.append(seq[i])
-        for i in range(len(seq) - hist_len, len(seq)):
-            exp_new_state.append(seq[i])
+        exp_state = seq[-hist_len - 1 : -1]
+        exp_new_state == seq[-hist_len:]
     exp = Experience(state=np.stack(np.array(exp_state),axis=2), action=action, reward=reward, new_state=np.stack(np.array(exp_new_state),axis=2), game_over=ale.game_over())
     return exp
 
@@ -144,15 +141,10 @@ def get_state(seq, hist_len):
     if len(seq) < hist_len + 1:
         num_copy = hist_len - len(seq)
         state = ([seq[0]] * num_copy) + (seq)
-        if not (np.shape(state) == (4, 84, 84)):
-            print np.shape(state)
     else:
         state = seq[-hist_len:]
-        if not (np.shape(state) == (4, 84, 84)):
-            print np.shape(state)
     #makes it 84 x 84 x hist_len (4, 84, 84) -> (84, 84, 4)
     return np.moveaxis(state, 0, -1)
-    return state
 
 def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     #perform nullops

@@ -5,7 +5,7 @@ def make_weight_var(shape):
 	return tf.Variable(initial)
 
 def make_bias_var(shape):
-	initial=tf.constant(0.1, shape=shape)
+	initial=tf.constant(0.001, shape=shape)
 	return tf.Variable(initial)
 
 def clip_error(err):

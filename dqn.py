@@ -130,7 +130,9 @@ class DQN:
 	    #increment update counter
 	    self.num_updates = self.num_updates + 1
 	    if self.num_updates % self.tgt_update_freq:
+	    	print "Copying Network"
 	    	self.copy_network()
+	    	print "Done Copying"
 
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"

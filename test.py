@@ -71,7 +71,7 @@ def get_state(seq, hist_len):
         state = ([seq[0]] * num_copy) + (seq)
     else:
         state = seq[-hist_len:]
-    return np.stack(np.array(state), axis=2)
+    return np.moveaxis(state, 0, -1)
 
 def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     #perform nullops
