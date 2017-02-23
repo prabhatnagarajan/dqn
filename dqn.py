@@ -129,7 +129,7 @@ class DQN:
 	    self.prediction_net.train_agent.run(feed_dict=feed_dict)
 	    #increment update counter
 	    self.num_updates = self.num_updates + 1
-	    if self.num_updates % self.tgt_update_freq:
+	    if self.num_updates % self.tgt_update_freq == 0:
 	    	print "Copying Network"
 	    	self.copy_network()
 	    	print "Done Copying"
