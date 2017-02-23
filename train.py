@@ -17,7 +17,7 @@ Experience = namedtuple('Experience', 'state action reward new_state game_over')
 def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
     discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
     sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
-    fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", memory_file="memory.npy", train_save_frequency=1000):
+    fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", memory_file="memory.npy", train_save_frequency=2000):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
@@ -49,6 +49,9 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     #initialize epsilon
     epsilon = init_epsilon
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
+    #Load saved Epsilon from file
+    if os.path.isfile(epsilon_file):
+        epsilon = float(np.load(epsilon_file)[0])
 
     # create DQN agent
     agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
@@ -113,6 +116,10 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         print "Number of frames is " + str(num_frames)
         ale.reset_game()
         episode_num = episode_num + 1
+        #Save epsilon value to a file
+        if episode_num % train_save_frequency == 0:
+            #np.save(replay_memory, memory_file)
+            np.save(epsilon_file, [epsilon])
     print "Number " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory
