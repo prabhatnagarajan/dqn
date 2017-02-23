@@ -21,7 +21,8 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
 
     # Get & Set the desired settings
     ale.setInt('random_seed', 123)
-
+    #Changes repeat action probability from default of 0.25
+    ale.setFloat('repeat_action_probability', 0.0)
     # Set USE_SDL to true to display the screen. ALE must be compilied
     # with SDL enabled for this to work. On OSX, pygame init is used to
     # proxy-call SDL_main.
