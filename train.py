@@ -95,17 +95,20 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
 
             #store transition (phi(t), a_t, r_t, phi(t+1)) in replay_memory
             #Does getExperience assume a certain input format for processed sequence?
-            exp = get_experience(seq, action, reward, hist_len, ale)
+            episode_done = ale.game_over() or (ale.lives() < lives)
+            exp = get_experience(seq, action, reward, hist_len, episode_done)
             replay_memory.append(exp)
             #Training
             if (num_frames > replay_start_size):
                 epsilon = max(epsilon - epsilon_delta, fin_epsilon)
                 agent.set_epsilon(epsilon)
                 if num_frames % upd_freq == 0:
+                    start = time()
                     agent.train(replay_memory, minibatch_size) 
+                    end = time()
+                    print "Training took " + str(end - start)
             num_frames = num_frames + 1
             #we end episode if life is lost or game is over
-            episode_done = ale.game_over() or (ale.lives() < lives)
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
         print "Number of frames is " + str(num_frames)
         ale.reset_game()
@@ -113,7 +116,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     print "Number " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory
-def get_experience(seq, action, reward, hist_len, ale):
+def get_experience(seq, action, reward, hist_len, episode_done):
     exp_state = list()
     exp_new_state = list()
     '''
@@ -134,7 +137,7 @@ def get_experience(seq, action, reward, hist_len, ale):
     else:
         exp_state = seq[-hist_len - 1 : -1]
         exp_new_state = seq[-hist_len:]
-    exp = Experience(state=np.moveaxis(exp_state, 0, -1), action=action, reward=reward, new_state=np.moveaxis(exp_new_state, 0, -1), game_over=ale.game_over())
+    exp = Experience(state=np.moveaxis(exp_state, 0, -1), action=action, reward=reward, new_state=np.moveaxis(exp_new_state, 0, -1), game_over=episode_done)
     return exp
 
 def get_state(seq, hist_len):

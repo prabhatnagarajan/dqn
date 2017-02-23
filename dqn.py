@@ -2,7 +2,7 @@
 import random
 from random import randrange
 from random import uniform
-from cnn import CNN
+from cnn import NatureCNN
 import os
 import tensorflow as tf
 import numpy as np
@@ -20,8 +20,8 @@ class DQN:
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
 		self.chkpt_freq = 10000
-		self.prediction_net = CNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
-		self.target_net = CNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
+		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
+		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.reset_target_network = [
 		#Copy Weights
 		self.target_net.weights_conv1.assign(self.prediction_net.weights_conv1),

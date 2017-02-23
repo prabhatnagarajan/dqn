@@ -12,7 +12,7 @@ def clip_error(err):
 	return tf.select(tf.abs(err) < 1.0, 0.5 * tf.square(err), tf.abs(err) - 0.5)
 
 #Implements the Convolutional Neural Network
-class CNN():
+class NatureCNN():
 
 	def __init__(self, learning_rate, momentum, sq_momentum, hist_len, num_legal_actions):
 		self.learning_rate = learning_rate
