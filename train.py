@@ -106,10 +106,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
                 epsilon = max(epsilon - epsilon_delta, fin_epsilon)
                 agent.set_epsilon(epsilon)
                 if num_frames % upd_freq == 0:
-                    start = time()
                     agent.train(replay_memory, minibatch_size) 
-                    end = time()
-                    print "Training took " + str(end - start)
             num_frames = num_frames + 1
             #we end episode if life is lost or game is over
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
