@@ -1,4 +1,4 @@
-# dqn_atari
+# dqn
 This repository will contain a python implementation of DQN used for atari games. This is written in Python using Tensorflow
 
 
