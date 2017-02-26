@@ -58,7 +58,7 @@ class NatureCNN():
 		#target
 		self.target = tf.placeholder(tf.float32, shape=[None])
 		
-		#List of legal actions
+		#List of action indices in minimal action set array
 		self.actions = tf.placeholder(tf.uint8, shape=[None])
 
 		#Compute Q Values of all 32 states

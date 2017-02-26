@@ -53,6 +53,9 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     if os.path.isfile(epsilon_file):
         epsilon = float(np.load(epsilon_file)[0])
     print "Initial epsilon value is " + str(epsilon)
+
+    print "Minimal Action set is:"
+    print ale.getMinimalActionSet()
     # create DQN agent
     agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
 

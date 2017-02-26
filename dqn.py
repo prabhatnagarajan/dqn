@@ -14,7 +14,7 @@ class DQN:
 		self.ale = ale
 		self.session = session
 		self.capacity = capacity
-		self.minimal_action_set = ale.getMinimalActionSet()
+		self.minimal_action_set = ale.getMinimalActionSet().tolist()
 		self.epsilon = epsilon
 		self.num_updates = 0
 		self.discount = discount
@@ -117,11 +117,11 @@ class DQN:
 	    #set label
 	    labels = self.compute_labels(sample, minibatch_size)
 	    state = [x.state for x in sample]
-	    actions = [x.action for x in sample]
-
+	    actions_taken = [x.action for x in sample]
+	    action_indices = [self.minimal_action_set.index(x) for x in actions_taken]
 	    feed_dict={
 		    self.prediction_net.state : state,
-		    self.prediction_net.actions : actions,
+		    self.prediction_net.actions : action_indices,
 		    self.prediction_net.target : labels.tolist()
 	    }
 
