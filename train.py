@@ -18,7 +18,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
     sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
     fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", 
-    num_frames_file="framecount.npy", memory_file="memory.npy", train_save_frequency=2000):
+    num_frames_file="framecount.npy", memory_file="memory.npy", train_save_frequency=25000):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
@@ -125,7 +125,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         episode_num = episode_num + 1
         #Save epsilon value to a file
         if episode_num % train_save_frequency == 0:
-            save(epsilon_file, memory_file, epsilon, replay_memory)
+            save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory)
 
     print "Number " + str(num_frames)
 
@@ -174,16 +174,21 @@ def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     preprocess_stack.append(ale.getScreenRGB())
     seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[0]))
 
-def save(epsilon_file, memory_file, epsilon, replay_memory):
+def save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory):
+    print "Saving info"
     np.save(epsilon_file, [epsilon])
+    np.save(num_frames_file, [num_frames])
     np.save(memory_file, replay_memory)
+    print "Saved info"
 
 def load(epsilon_file, num_frames_file, memory_file, replay_capacity):
+    "Loading Saved Training Information"
     epsilon = float(np.load(epsilon_file)[0])
     num_frames = int(np.load(num_frames_file)[0])
     memory = np.load(memory_file)
     memory = memory.tolist()
     replay_memory = deque([Experience._make(exp) for exp in memory], replay_capacity)
+    print "Loaded Training Information"
     return (epsilon, num_frames, replay_memory)
 
 if __name__ == '__main__':
