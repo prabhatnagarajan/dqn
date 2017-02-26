@@ -11,7 +11,6 @@ import numpy as np
 import cnn
 import tensorflow as tf
 from time import time
-from pdb import set_trace
 
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
@@ -111,7 +110,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             episode_done = ale.game_over() or (ale.lives() < lives)
             exp = get_experience(seq, action, reward, hist_len, episode_done)
             replay_memory.append(exp)
-            set_trace()
+
             #Training
             if (num_frames > replay_start_size):
                 epsilon = max(epsilon - epsilon_delta, fin_epsilon)
