@@ -11,13 +11,15 @@ import numpy as np
 import cnn
 import tensorflow as tf
 from time import time
+from pdb import set_trace
 
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
 def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
     discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
     sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
-    fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", memory_file="memory.npy", train_save_frequency=2000):
+    fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", 
+    num_frames_file="framecount.npy", memory_file="memory.npy", train_save_frequency=2000):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
@@ -49,10 +51,6 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     #initialize epsilon
     epsilon = init_epsilon
     epsilon_delta = (init_epsilon - fin_epsilon)/fin_exp
-    #Load saved Epsilon from file
-    if os.path.isfile(epsilon_file):
-        epsilon = float(np.load(epsilon_file)[0])
-    print "Initial epsilon value is " + str(epsilon)
 
     print "Minimal Action set is:"
     print ale.getMinimalActionSet()
@@ -66,6 +64,15 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
     preprocess_stack = deque([], 2)
 
     num_frames = 0
+
+
+    if os.path.isfile(epsilon_file) and os.path.isfile(memory_file) and os.path.isfile(num_frames_file):
+        epsilon, num_frames, replay_memory= load(epsilon_file, num_frames_file, memory_file, replay_capacity)
+
+    print "Initial epsilon value is " + str(epsilon)
+    print "Replay Memory size is " + str(len(replay_memory))
+    print "Num Frames passed is " + str(num_frames)
+
     episode_num = 1
     while num_frames < 30000000:
         #initialize sequence with initial image
@@ -104,6 +111,7 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
             episode_done = ale.game_over() or (ale.lives() < lives)
             exp = get_experience(seq, action, reward, hist_len, episode_done)
             replay_memory.append(exp)
+            set_trace()
             #Training
             if (num_frames > replay_start_size):
                 epsilon = max(epsilon - epsilon_delta, fin_epsilon)
@@ -118,8 +126,8 @@ def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_u
         episode_num = episode_num + 1
         #Save epsilon value to a file
         if episode_num % train_save_frequency == 0:
-            #np.save(replay_memory, memory_file)
-            np.save(epsilon_file, [epsilon])
+            save(epsilon_file, memory_file, epsilon, replay_memory)
+
     print "Number " + str(num_frames)
 
 #Returns hist_len most preprocessed frames and memory
@@ -166,6 +174,18 @@ def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     ale.act(0)
     preprocess_stack.append(ale.getScreenRGB())
     seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[0]))
+
+def save(epsilon_file, memory_file, epsilon, replay_memory):
+    np.save(epsilon_file, [epsilon])
+    np.save(memory_file, replay_memory)
+
+def load(epsilon_file, num_frames_file, memory_file, replay_capacity):
+    epsilon = float(np.load(epsilon_file)[0])
+    num_frames = int(np.load(num_frames_file)[0])
+    memory = np.load(memory_file)
+    memory = memory.tolist()
+    replay_memory = deque([Experience._make(exp) for exp in memory], replay_capacity)
+    return (epsilon, num_frames, replay_memory)
 
 if __name__ == '__main__':
     with tf.Session() as session:
