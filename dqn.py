@@ -19,7 +19,7 @@ class DQN:
 		self.num_updates = 0
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
-		self.chkpt_freq = 10000
+		self.chkpt_freq = 100
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.reset_target_network = [
@@ -136,5 +136,5 @@ class DQN:
 
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
-	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.num_updates)
+	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.counter)
 	    	print "Saved."

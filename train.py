@@ -11,14 +11,15 @@ import numpy as np
 import cnn
 import tensorflow as tf
 from time import time
+from constants import *
 
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
-def train(session, minibatch_size=32, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
+def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
     discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
     sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
     fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", 
-    num_frames_file="framecount.npy", memory_file="memory.npy", train_save_frequency=25000):
+    num_frames_file="framecount.npy", memory_file="memory.npy", train_save_frequency=10000):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'

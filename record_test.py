@@ -15,7 +15,7 @@ import tensorflow as tf
 #TODO Remove unused imports
 
 def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=0.01, epsilon=0.05, 
-    no_op_max=30, num_tests=30, learning_rate=0.0025, momentum=0.95, sq_momentum=0.95):
+    no_op_max=30, num_tests=1, learning_rate=0.0025, momentum=0.95, sq_momentum=0.95):
     #Create ALE object
     if len(sys.argv) < 3:
       print('Usage: %s rom_file record_screen_dir' % sys.argv[0])
