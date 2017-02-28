@@ -15,10 +15,10 @@ from constants import *
 
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
-def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=1000000, hist_len=4, tgt_update_freq=10000,
-    discount=0.99, act_rpt=4, upd_freq=4, learning_rate=0.00025, grad_mom=0.95,
-    sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=1.0, fin_epsilon=0.1, 
-    fin_exp=1000000, replay_start_size=50000, no_op_max=30, epsilon_file="epsilon.npy", 
+def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACITY, hist_len=HIST_LEN, tgt_update_freq=TGT_UPDATE_FREQ,
+    discount=DISCOUNT, act_rpt=ACT_REPEAT, upd_freq=UPDATE_FREQ, learning_rate=LEARNING_RATE, grad_mom=0.95,
+    sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=INITIAL_EPSILON, fin_epsilon=FINAL_EPSILON, 
+    fin_exp=1000000, replay_start_size=REPLAY_START_SIZE, no_op_max=NO_OP_MAX, epsilon_file="epsilon.npy", 
     num_frames_file="framecount.npy", memory_file="memory.npy", train_save_frequency=10000):
     #Create ALE object
     if len(sys.argv) < 2:
