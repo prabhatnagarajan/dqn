@@ -7,6 +7,7 @@ import os
 import tensorflow as tf
 import numpy as np
 from time import time
+from constants import *
 
 class DQN:
 	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, min_num_actions, 
@@ -19,7 +20,7 @@ class DQN:
 		self.num_updates = 0
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
-		self.chkpt_freq = 100
+		self.chkpt_freq = 10000
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.reset_target_network = [
@@ -36,7 +37,7 @@ class DQN:
 		self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1),
 		self.target_net.bias_output.assign(self.prediction_net.bias_output)]
 
-		self.checkpoint_directory = "checkpoints"
+		self.checkpoint_directory = CHECKPOINT_DIR
 
 		self.session.run(tf.global_variables_initializer())
 
@@ -72,7 +73,10 @@ class DQN:
 		checkpoint = tf.train.get_checkpoint_state(self.checkpoint_directory)
 		if checkpoint and checkpoint.model_checkpoint_path:
 			print "Loading the saved weights..."
-			self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+			print "Latest Checkpoint is ..."
+			print tf.train.latest_checkpoint(self.checkpoint_directory)
+			#self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+			self.saver.restore(self.session, tf.train.latest_checkpoint(self.checkpoint_directory))
 			self.counter = int(checkpoint.model_checkpoint_path.split('-')[-1])
 			print "Load complete."
 		else:
@@ -136,5 +140,5 @@ class DQN:
 
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
-	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.counter)
+	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.counter + self.num_updates)
 	    	print "Saved."
