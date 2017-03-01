@@ -10,17 +10,16 @@ from time import time
 from constants import *
 
 class DQN:
-	def __init__(self, ale, session, capacity, epsilon, learning_rate, momentum, sq_momentum, hist_len, min_num_actions, 
+	def __init__(self, ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, min_num_actions, 
 		tgt_update_freq, discount):
 		self.ale = ale
 		self.session = session
-		self.capacity = capacity
 		self.minimal_action_set = ale.getMinimalActionSet().tolist()
 		self.epsilon = epsilon
 		self.num_updates = 0
 		self.discount = discount
 		self.tgt_update_freq = tgt_update_freq
-		self.chkpt_freq = 10000
+		self.chkpt_freq = CHECKPOINT_FREQUENCY
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.reset_target_network = [
@@ -41,6 +40,7 @@ class DQN:
 
 		self.session.run(tf.global_variables_initializer())
 
+		self.counter = 0
 		self.saver = tf.train.Saver(
 			[
 			#weights prediction

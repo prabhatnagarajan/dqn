@@ -1,3 +1,4 @@
+#Algorithm Parameters
 MINIBATCH_SIZE=32
 REPLAY_CAPACITY=1000000
 HIST_LEN=4
@@ -15,3 +16,7 @@ NUM_FRAMES_FILE="framecount.npy"
 MEMORY_FILE="memory.npy"
 EPSILON_FILE="epsilon.npy"
 CHECKPOINT_DIR="checkpoints"
+#Checkpoint info
+CHECKPOINT_FREQUENCY=10000
+
+#Testing Constants

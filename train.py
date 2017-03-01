@@ -55,7 +55,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Minimal Action set is:"
     print ale.getMinimalActionSet()
     # create DQN agent
-    agent = DQN(ale, session,  1000000, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
+    agent = DQN(ale, session, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
