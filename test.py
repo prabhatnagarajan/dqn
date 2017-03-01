@@ -41,7 +41,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
 
     # create DQN agent
     # learning_rate and momentum are unused parameters (but needed)
-    agent = DQN(ale, session,  1000000, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount)
+    agent = DQN(ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount)
     
     #Store the most recent two images
     preprocess_stack = deque([], 2)
