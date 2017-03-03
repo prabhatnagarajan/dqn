@@ -16,10 +16,10 @@ from constants import *
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
 
 def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACITY, hist_len=HIST_LEN, tgt_update_freq=TGT_UPDATE_FREQ,
-    discount=DISCOUNT, act_rpt=ACT_REPEAT, upd_freq=UPDATE_FREQ, learning_rate=LEARNING_RATE, grad_mom=0.95,
-    sgrad_mom=0.95, min_sq_grad=0.01, init_epsilon=INITIAL_EPSILON, fin_epsilon=FINAL_EPSILON, 
-    fin_exp=1000000, replay_start_size=REPLAY_START_SIZE, no_op_max=NO_OP_MAX, epsilon_file=EPSILON_FILE, 
-    num_frames_file=NUM_FRAMES_FILE, memory_file=MEMORY_FILE, train_save_frequency=10000):
+    discount=DISCOUNT, act_rpt=ACT_REPEAT, upd_freq=UPDATE_FREQ, learning_rate=LEARNING_RATE, grad_mom=GRADIENT_MOMENTUM,
+    sgrad_mom=SQUARED_GRADIENT_MOMENTUM, min_sq_grad=MIN_SQUARED_GRADIENT, init_epsilon=INITIAL_EPSILON, fin_epsilon=FINAL_EPSILON, 
+    fin_exp=FINAL_EXPLORATION_FRAME, replay_start_size=REPLAY_START_SIZE, no_op_max=NO_OP_MAX, epsilon_file=EPSILON_FILE, 
+    num_frames_file=NUM_FRAMES_FILE, memory_file=MEMORY_FILE, train_save_frequency=TRAIN_SAVE_FREQUENCY):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
