@@ -40,6 +40,9 @@ class DQN:
 
 		self.session.run(tf.global_variables_initializer())
 
+		#Copy the target network to begin with
+		self.copy_network()
+
 		self.counter = 0
 		self.saver = tf.train.Saver(
 			[
@@ -133,6 +136,11 @@ class DQN:
 	    self.prediction_net.train_agent.run(feed_dict=feed_dict)
 	    #increment update counter
 	    self.num_updates = self.num_updates + 1
+	    '''
+	    Inconsistency in Deepmind code versus Paper. In code they update target
+	    network every tgt_update_freq actions. In the the paper they say to do
+	    it every tgt_update_freq parameter updates.
+	    '''
 	    if self.num_updates % self.tgt_update_freq == 0:
 	    	print "Copying Network"
 	    	self.copy_network()
