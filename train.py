@@ -119,6 +119,15 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
+                    '''
+            Inconsistency in Deepmind code versus Paper. In code they update target
+            network every tgt_update_freq actions. In the the paper they say to do
+            it every tgt_update_freq parameter updates.
+            '''
+            if num_frames % tgt_update_freq == 1:
+                print "Copying Network"
+                agent.copy_network()
+                print "Done Copying"
             #we end episode if life is lost or game is over
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
         print "Number of frames is " + str(num_frames)
@@ -166,14 +175,13 @@ def get_state(seq, hist_len):
 
 def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     #perform nullops
-    for _ in range(np.random.randint(no_op_max + 1)):
+    for _ in range(np.random.randint(1, no_op_max + 1)):
         ale.act(0)
-    #fill the preprocessing stack
-    ale.act(0)
-    preprocess_stack.append(ale.getScreenRGB())
-    ale.act(0)
-    preprocess_stack.append(ale.getScreenRGB())
-    seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[0]))
+        preprocess_stack.append(ale.getScreenRGB())
+    if len(preprocess_stack) < 2:
+        ale.act(0)
+        preprocess_stack.append(ale.getScreenRGB())
+    seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
 
 def save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory):
     print "Saving info"
