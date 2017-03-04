@@ -74,7 +74,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Num Frames passed is " + str(num_frames)
 
     episode_num = 1
-    while num_frames < 30000000:
+    while num_frames < TRAINING_FRAMES:
         #initialize sequence with initial image
         seq = list()
 
@@ -119,7 +119,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
             num_frames = num_frames + 1
-                    '''
+            '''
             Inconsistency in Deepmind code versus Paper. In code they update target
             network every tgt_update_freq actions. In the the paper they say to do
             it every tgt_update_freq parameter updates.
@@ -201,5 +201,6 @@ def load(epsilon_file, num_frames_file, memory_file, replay_capacity):
     return (epsilon, num_frames, replay_memory)
 
 if __name__ == '__main__':
-    with tf.Session() as session:
+    with tf.Session(config=tf.ConfigProto(
+  intra_op_parallelism_threads=NUM_THREADS)) as session:
         train(session)
