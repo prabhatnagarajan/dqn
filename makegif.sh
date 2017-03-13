@@ -1,0 +1,1 @@
+convert -background white -alpha remove -layers OptimizePlus -delay 1x30 $2/*.png -loop 0 $1.gif
