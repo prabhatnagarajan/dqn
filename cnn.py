@@ -43,8 +43,8 @@ class NatureCNN():
 		conv_layer_3 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv_layer_2, self.weights_conv3, strides=[1, 1, 1, 1], padding="SAME"), self.bias_conv3))
 
 		#Final fully connected hidden layer
-		conv3_output = tf.reshape(conv_layer_3, [-1, 11 * 11 * 64])
-		self.weights_fc1 = make_weight_var([11 * 11 * 64, 512])
+		conv3_output = tf.reshape(conv_layer_3, [-1, 3136])
+		self.weights_fc1 = make_weight_var([3136, 512])
 		self.bias_fc1 = make_bias_var([512])
 		fc1 = tf.nn.relu(tf.nn.bias_add(tf.matmul(conv3_output, self.weights_fc1), self.bias_fc1))
 
