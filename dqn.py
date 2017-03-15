@@ -11,7 +11,7 @@ from constants import *
 
 class DQN:
 	def __init__(self, ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, min_num_actions, 
-		tgt_update_freq, discount):
+		tgt_update_freq, discount, rom):
 		self.ale = ale
 		self.session = session
 		self.minimal_action_set = ale.getMinimalActionSet().tolist()
@@ -23,6 +23,7 @@ class DQN:
 		self.chkpt_freq = CHECKPOINT_FREQUENCY
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
+		self.rom = rom		
 		self.reset_target_network = [
 		#Copy Weights
 		self.target_net.weights_conv1.assign(self.prediction_net.weights_conv1),
@@ -141,5 +142,5 @@ class DQN:
 
 	    if self.num_updates % self.chkpt_freq == 0:
 	    	print "Saving Weights"
-	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, "model"), global_step = self.counter + self.num_updates)
+	    	self.saver.save(self.session, os.path.join(self.checkpoint_directory, self.rom), global_step = self.counter + self.num_updates)
 	    	print "Saved."

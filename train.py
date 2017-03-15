@@ -55,7 +55,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Minimal Action set is:"
     print ale.getMinimalActionSet()
     # create DQN agent
-    agent = DQN(ale, session, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount)
+    agent = DQN(ale, session, epsilon, learning_rate, grad_mom, sgrad_mom, hist_len, len(ale.getMinimalActionSet()), tgt_update_freq, discount, rom_name(sys.argv[1]))
 
     # Initialize replay memory to capacity replay_capacity
     replay_memory = deque([], replay_capacity)
@@ -199,6 +199,9 @@ def load(epsilon_file, num_frames_file, memory_file, replay_capacity):
     replay_memory = deque([Experience._make(exp) for exp in memory], replay_capacity)
     print "Loaded Training Information"
     return (epsilon, num_frames, replay_memory)
+
+def rom_name(path):
+    return os.path.splitext(os.path.basename(path))[0]
 
 if __name__ == '__main__':
     with tf.Session(config=tf.ConfigProto(
