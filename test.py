@@ -8,6 +8,7 @@ import preprocess as pp
 import numpy as np
 import cnn
 import tensorflow as tf
+import os
 #TODO Remove unused imports
 
 def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=0.01, epsilon=0.05, 
@@ -41,7 +42,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
 
     # create DQN agent
     # learning_rate and momentum are unused parameters (but needed)
-    agent = DQN(ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount)
+    agent = DQN(ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount, rom_name(sys.argv[1]))
     
     #Store the most recent two images
     preprocess_stack = deque([], 2)
@@ -73,6 +74,9 @@ def get_state(seq, hist_len):
     else:
         state = seq[-hist_len:]
     return np.moveaxis(state, 0, -1)
+
+def rom_name(path):
+    return os.path.splitext(os.path.basename(path))[0]
 
 def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     #perform nullops

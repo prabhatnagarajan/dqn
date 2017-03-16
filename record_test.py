@@ -55,7 +55,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
 
     # create DQN agent
     # learning_rate and momentum are unused parameters (but needed)
-    agent = DQN(ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount)
+    agent = DQN(ale, session, epsilon, learning_rate, momentum, sq_momentum, hist_len, len(ale.getMinimalActionSet()), None, discount, rom_name(sys.argv[1]))
 
     #Store the most recent two images
     preprocess_stack = deque([], 2)
@@ -91,6 +91,9 @@ def get_state(seq, hist_len):
         state = seq[-hist_len:]
     return np.stack(np.array(state), axis=2)
 
+def rom_name(path):
+    return os.path.splitext(os.path.basename(path))[0]
+    
 def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
     #perform nullops
     for _ in range(np.random.randint(no_op_max + 1)):

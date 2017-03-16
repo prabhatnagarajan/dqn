@@ -95,4 +95,8 @@ class NatureCNN():
 
 		#Train with RMS Prop
 		#TODO perhaps remove epsilon and allow default
-		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum, epsilon=0.01).minimize(self.loss)		
+		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum, epsilon=0.01).minimize(self.loss)	
+
+		optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)	
+
+		grads_and_vars = optimizer.compute_gradients(self.loss)
