@@ -137,10 +137,8 @@ class DQN:
 
 	    #Perform the gradient descent step
 	    #self.prediction_net.train_agent.run(feed_dict=feed_dict)
-	    before = time()
 	    self.prediction_net.train_rms_prop.run(feed_dict=feed_dict)
-	    after = time()
-	    print "Training took " +str(after - before)
+
 	    #increment update counter
 	    self.num_updates = self.num_updates + 1
 
