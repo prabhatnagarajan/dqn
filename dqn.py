@@ -136,7 +136,8 @@ class DQN:
 	    }
 
 	    #Perform the gradient descent step
-	    self.prediction_net.train_agent.run(feed_dict=feed_dict)
+	    #self.prediction_net.train_agent.run(feed_dict=feed_dict)
+	    self.prediction_net.train_rms_prop.run(feed_dict=feed_dict)
 	    #increment update counter
 	    self.num_updates = self.num_updates + 1
 
