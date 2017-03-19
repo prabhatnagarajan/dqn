@@ -128,14 +128,15 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 print "Copying Network"
                 agent.copy_network()
                 print "Done Copying"
+            #Save epsilon value to a file
+            if num_frames % train_save_frequency == 0:
+                save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory)
+
             #we end episode if life is lost or game is over
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
         print "Number of frames is " + str(num_frames)
         ale.reset_game()
         episode_num = episode_num + 1
-        #Save epsilon value to a file
-        if num_frames % train_save_frequency == 0:
-            save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory)
 
     print "Number " + str(num_frames)
 
