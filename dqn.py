@@ -46,8 +46,7 @@ class DQN:
 		self.copy_network()
 
 		self.counter = 0
-		self.saver = tf.train.Saver(
-			[
+		var_list = 	[
 			#weights prediction
 			self.prediction_net.weights_conv1,
 			self.prediction_net.weights_conv2,
@@ -60,9 +59,6 @@ class DQN:
 			self.prediction_net.bias_conv3,
 			self.prediction_net.bias_fc1,
 			self.prediction_net.bias_output,
-			#rms prop
-			self.prediction_net.g,
-			self.prediction_net.g2,
 			#weights target
 			self.target_net.weights_conv1,
 			self.target_net.weights_conv2,
@@ -75,9 +71,12 @@ class DQN:
 			self.target_net.bias_conv3,
 			self.target_net.bias_fc1,
 			self.target_net.bias_output
-			],
-			max_to_keep=3
-		)
+			]
+		#add rms prop variables
+		var_list.extend(self.prediction_net.g)
+		var_list.extend(self.prediction_net.g2)
+		self.saver = tf.train.Saver(var_list, max_to_keep=3)
+
 		checkpoint = tf.train.get_checkpoint_state(self.checkpoint_directory)
 		if checkpoint and checkpoint.model_checkpoint_path:
 			print "Loading the saved weights..."
