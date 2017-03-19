@@ -134,7 +134,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
         ale.reset_game()
         episode_num = episode_num + 1
         #Save epsilon value to a file
-        if episode_num % train_save_frequency == 0:
+        if num_frames % train_save_frequency == 0:
             save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory)
 
     print "Number " + str(num_frames)

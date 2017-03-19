@@ -114,16 +114,16 @@ class NatureCNN():
 		self.g = [tf.Variable(tf.zeros(var.get_shape())) for var in variables]
 		self.g2 = [tf.Variable(tf.zeros(var.get_shape())) for var in variables]
 
-		self.update_g = [g_val.assign(0.95 * g_val + 0.05 * grad) for g_val, grad in zip(self.g, gradients)]
+		update_g = [g_val.assign(0.95 * g_val + 0.05 * grad) for g_val, grad in zip(self.g, gradients)]
 		
-		self.update_g2 = [g2_val.assign(0.95 * g2_val + 0.05 * tf.square(grad)) for g2_val, grad in zip(self.g2, gradients)]
+		update_g2 = [g2_val.assign(0.95 * g2_val + 0.05 * tf.square(grad)) for g2_val, grad in zip(self.g2, gradients)]
 
 		rms = [tf.sqrt(g2_val - tf.square(g_val) + 0.01) for g_val, g2_val in zip(self.g, self.g2)]
 
 		rms_update = [gradient/rms_val for gradient, rms_val in zip(gradients, rms)]
 
 		#https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/ops/control_flow_ops.py
-		g_updates = self.update_g + self.update_g2
+		g_updates = update_g + update_g2
 
 		training = optimizer.apply_gradients(zip(rms_update, variables))
 		self.train_rms_prop = tf.group(training, tf.group(*(g_updates)))

@@ -60,6 +60,9 @@ class DQN:
 			self.prediction_net.bias_conv3,
 			self.prediction_net.bias_fc1,
 			self.prediction_net.bias_output,
+			#rms prop
+			self.prediction_net.g,
+			self.prediction_net.g2,
 			#weights target
 			self.target_net.weights_conv1,
 			self.target_net.weights_conv2,
