@@ -106,13 +106,38 @@ class NatureCNN():
 		gradients = []
 		variables = []
 		for grad, var in grads_and_vars:
-			if not (grad == None):
-				gradients.append(grad)
-				variables.append(var)
+			gradients.append(grad)
+			variables.append(var)
+
+		self.g_val_weights_conv1 = tf.Variable(tf.zeros(weights_conv1.get_shape()))
+		self.g_val_bias_conv1 = tf.Variable(tf.zeros(bias_conv1.get_shape()))
+		self.g_val_weights_conv2 = tf.Variable(tf.zeros(weights_conv2.get_shape()))
+		self.g_val_bias_conv2 = tf.Variable(tf.zeros(bias_conv2.get_shape()))
+		self.g_val_weights_conv3 = tf.Variable(tf.zeros(weights_conv3.get_shape()))
+		self.g_val_bias_conv3 = tf.Variable(tf.zeros(bias_conv3.get_shape()))
+		self.g_val_weights_fc1 = tf.Variable(tf.zeros(weights_fc1.get_shape()))
+		self.g_val_bias_fc1 = tf.Variable(tf.zeros(bias_fc1.get_shape()))
+		self.g_val_weights_output = tf.Variable(tf.zeros(weights_output.get_shape()))
+		self.g_val_bias_output = tf.Variable(tf.zeros(bias_output.get_shape()))
+
+		self.g2_val_weights_conv1 = tf.Variable(tf.zeros(weights_conv1.get_shape()))
+		self.g2_val_bias_conv1 = tf.Variable(tf.zeros(bias_conv1.get_shape()))
+		self.g2_val_weights_conv2 = tf.Variable(tf.zeros(weights_conv2.get_shape()))
+		self.g2_val_bias_conv2 = tf.Variable(tf.zeros(bias_conv2.get_shape()))
+		self.g2_val_weights_conv3 = tf.Variable(tf.zeros(weights_conv3.get_shape()))
+		self.g2_val_bias_conv3 = tf.Variable(tf.zeros(bias_conv3.get_shape()))
+		self.g2_val_weights_fc1 = tf.Variable(tf.zeros(weights_fc1.get_shape()))
+		self.g2_val_bias_fc1 = tf.Variable(tf.zeros(bias_fc1.get_shape()))
+		self.g2_val_weights_output = tf.Variable(tf.zeros(weights_output.get_shape()))
+		self.g2_val_bias_output = tf.Variable(tf.zeros(bias_output.get_shape()))
 
 		#following deepmind's notation
-		self.g = [tf.Variable(tf.zeros(var.get_shape())) for var in variables]
-		self.g2 = [tf.Variable(tf.zeros(var.get_shape())) for var in variables]
+		self.g = [self.g_val_weights_conv1, self.g_val_bias_conv1, self.g_val_weights_conv2, self.g_val_bias_conv2,
+					self.g_val_weights_conv3, self.g_val_weights_fc1, self.g_val_bias_fc1, self.g_val_weights_output,
+					self.g_val_bias_output]
+		self.g2 = [self.g2_val_weights_conv1, self.g2_val_bias_conv1, self.g2_val_weights_conv2, self.g2_val_bias_conv2,
+					self.g2_val_weights_conv3, self.g2_val_weights_fc1, self.g2_val_bias_fc1, self.g2_val_weights_output,
+					self.g2_val_bias_output]
 
 		update_g = [g_val.assign(0.95 * g_val + 0.05 * grad) for g_val, grad in zip(self.g, gradients)]
 		
