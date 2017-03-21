@@ -101,43 +101,53 @@ class NatureCNN():
 		# Deepmind RMSProp
 		optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)	
 
-		grads_and_vars = optimizer.compute_gradients(self.loss)
+		self.g_val_weights_conv1 = tf.Variable(tf.zeros(self.weights_conv1.get_shape()))
+		self.g_val_bias_conv1 = tf.Variable(tf.zeros(self.bias_conv1.get_shape()))
+		self.g_val_weights_conv2 = tf.Variable(tf.zeros(self.weights_conv2.get_shape()))
+		self.g_val_bias_conv2 = tf.Variable(tf.zeros(self.bias_conv2.get_shape()))
+		self.g_val_weights_conv3 = tf.Variable(tf.zeros(self.weights_conv3.get_shape()))
+		self.g_val_bias_conv3 = tf.Variable(tf.zeros(self.bias_conv3.get_shape()))
+		self.g_val_weights_fc1 = tf.Variable(tf.zeros(self.weights_fc1.get_shape()))
+		self.g_val_bias_fc1 = tf.Variable(tf.zeros(self.bias_fc1.get_shape()))
+		self.g_val_weights_output = tf.Variable(tf.zeros(self.weights_output.get_shape()))
+		self.g_val_bias_output = tf.Variable(tf.zeros(self.bias_output.get_shape()))
 
-		gradients = []
-		variables = []
-		for grad, var in grads_and_vars:
-			gradients.append(grad)
-			variables.append(var)
-
-		self.g_val_weights_conv1 = tf.Variable(tf.zeros(weights_conv1.get_shape()))
-		self.g_val_bias_conv1 = tf.Variable(tf.zeros(bias_conv1.get_shape()))
-		self.g_val_weights_conv2 = tf.Variable(tf.zeros(weights_conv2.get_shape()))
-		self.g_val_bias_conv2 = tf.Variable(tf.zeros(bias_conv2.get_shape()))
-		self.g_val_weights_conv3 = tf.Variable(tf.zeros(weights_conv3.get_shape()))
-		self.g_val_bias_conv3 = tf.Variable(tf.zeros(bias_conv3.get_shape()))
-		self.g_val_weights_fc1 = tf.Variable(tf.zeros(weights_fc1.get_shape()))
-		self.g_val_bias_fc1 = tf.Variable(tf.zeros(bias_fc1.get_shape()))
-		self.g_val_weights_output = tf.Variable(tf.zeros(weights_output.get_shape()))
-		self.g_val_bias_output = tf.Variable(tf.zeros(bias_output.get_shape()))
-
-		self.g2_val_weights_conv1 = tf.Variable(tf.zeros(weights_conv1.get_shape()))
-		self.g2_val_bias_conv1 = tf.Variable(tf.zeros(bias_conv1.get_shape()))
-		self.g2_val_weights_conv2 = tf.Variable(tf.zeros(weights_conv2.get_shape()))
-		self.g2_val_bias_conv2 = tf.Variable(tf.zeros(bias_conv2.get_shape()))
-		self.g2_val_weights_conv3 = tf.Variable(tf.zeros(weights_conv3.get_shape()))
-		self.g2_val_bias_conv3 = tf.Variable(tf.zeros(bias_conv3.get_shape()))
-		self.g2_val_weights_fc1 = tf.Variable(tf.zeros(weights_fc1.get_shape()))
-		self.g2_val_bias_fc1 = tf.Variable(tf.zeros(bias_fc1.get_shape()))
-		self.g2_val_weights_output = tf.Variable(tf.zeros(weights_output.get_shape()))
-		self.g2_val_bias_output = tf.Variable(tf.zeros(bias_output.get_shape()))
+		self.g2_val_weights_conv1 = tf.Variable(tf.zeros(self.weights_conv1.get_shape()))
+		self.g2_val_bias_conv1 = tf.Variable(tf.zeros(self.bias_conv1.get_shape()))
+		self.g2_val_weights_conv2 = tf.Variable(tf.zeros(self.weights_conv2.get_shape()))
+		self.g2_val_bias_conv2 = tf.Variable(tf.zeros(self.bias_conv2.get_shape()))
+		self.g2_val_weights_conv3 = tf.Variable(tf.zeros(self.weights_conv3.get_shape()))
+		self.g2_val_bias_conv3 = tf.Variable(tf.zeros(self.bias_conv3.get_shape()))
+		self.g2_val_weights_fc1 = tf.Variable(tf.zeros(self.weights_fc1.get_shape()))
+		self.g2_val_bias_fc1 = tf.Variable(tf.zeros(self.bias_fc1.get_shape()))
+		self.g2_val_weights_output = tf.Variable(tf.zeros(self.weights_output.get_shape()))
+		self.g2_val_bias_output = tf.Variable(tf.zeros(self.bias_output.get_shape()))
 
 		#following deepmind's notation
 		self.g = [self.g_val_weights_conv1, self.g_val_bias_conv1, self.g_val_weights_conv2, self.g_val_bias_conv2,
-					self.g_val_weights_conv3, self.g_val_weights_fc1, self.g_val_bias_fc1, self.g_val_weights_output,
-					self.g_val_bias_output]
+					self.g_val_weights_conv3, self.g_val_bias_conv3, self.g_val_weights_fc1, self.g_val_bias_fc1, 
+					self.g_val_weights_output, self.g_val_bias_output]
 		self.g2 = [self.g2_val_weights_conv1, self.g2_val_bias_conv1, self.g2_val_weights_conv2, self.g2_val_bias_conv2,
-					self.g2_val_weights_conv3, self.g2_val_weights_fc1, self.g2_val_bias_fc1, self.g2_val_weights_output,
-					self.g2_val_bias_output]
+					self.g2_val_weights_conv3, self.g2_val_bias_conv3, self.g2_val_weights_fc1, self.g2_val_bias_fc1, 
+					self.g2_val_weights_output, self.g2_val_bias_output]
+		
+		#grads_and_vars = optimizer.compute_gradients(self.loss, )
+		variables = [self.weights_conv1,
+			self.bias_conv1,
+			self.weights_conv2,
+			self.bias_conv2,
+			self.weights_conv3,
+			self.bias_conv3,
+			self.weights_fc1,
+			self.bias_fc1,
+			self.weights_output,
+			self.bias_output
+		]
+
+		grads = tf.gradients(self.loss, variables)
+		gradients = []
+		for grad in grads:
+			gradients.append(grad)
 
 		update_g = [g_val.assign(0.95 * g_val + 0.05 * grad) for g_val, grad in zip(self.g, gradients)]
 		
