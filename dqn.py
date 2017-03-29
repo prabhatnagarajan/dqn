@@ -18,7 +18,6 @@ class DQN:
 		self.epsilon = epsilon
 		self.num_updates = 0
 		self.discount = discount
-		self.num_steps = 0
 		self.tgt_update_freq = tgt_update_freq
 		self.chkpt_freq = CHECKPOINT_FREQUENCY
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
@@ -89,11 +88,9 @@ class DQN:
 		else:
 			print "No saved weights. Beginning with random weights."
 
-
-	def get_action(self, state):
-		self.num_steps += 1
+	def eGreedy_action(self, state, epsilon):
 		rand = uniform(0,1)
-		if (rand < self.epsilon):
+		if (rand < epsilon):
 			return self.minimal_action_set[randrange(len(self.minimal_action_set))]
 		else:
 			#Choose greedy action
@@ -101,6 +98,9 @@ class DQN:
 			q_vals = self.prediction_net.q.eval(
 	        		feed_dict = {self.prediction_net.state: mod_state})[0]
 			return self.minimal_action_set[np.argmax(q_vals)]
+
+	def get_action(self, state):
+		return eGreedy_action(self.epsilon)
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon
