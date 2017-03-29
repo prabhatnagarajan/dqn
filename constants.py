@@ -26,6 +26,6 @@ CHECKPOINT_DIR="checkpoints"
 #Checkpoint info
 CHECKPOINT_FREQUENCY=10000
 #Saving repay memory, epsilon, etc.
-TRAIN_SAVE_FREQUENCY=10000
+TRAIN_SAVE_FREQUENCY=500000
 #Testing Constants
 

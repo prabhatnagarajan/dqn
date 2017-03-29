@@ -1,5 +1,6 @@
 import tensorflow as tf
 import math
+from pdb import set_trace
 
 def linear_weight_var(shape):
    stdv = 1.0/math.sqrt(shape[0])
@@ -95,4 +96,69 @@ class NatureCNN():
 
 		#Train with RMS Prop
 		#TODO perhaps remove epsilon and allow default
-		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum, epsilon=0.01).minimize(self.loss)		
+		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum, epsilon=0.01).minimize(self.loss)	
+
+		# Deepmind RMSProp
+		optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)	
+
+		self.g_val_weights_conv1 = tf.Variable(tf.zeros(self.weights_conv1.get_shape()))
+		self.g_val_bias_conv1 = tf.Variable(tf.zeros(self.bias_conv1.get_shape()))
+		self.g_val_weights_conv2 = tf.Variable(tf.zeros(self.weights_conv2.get_shape()))
+		self.g_val_bias_conv2 = tf.Variable(tf.zeros(self.bias_conv2.get_shape()))
+		self.g_val_weights_conv3 = tf.Variable(tf.zeros(self.weights_conv3.get_shape()))
+		self.g_val_bias_conv3 = tf.Variable(tf.zeros(self.bias_conv3.get_shape()))
+		self.g_val_weights_fc1 = tf.Variable(tf.zeros(self.weights_fc1.get_shape()))
+		self.g_val_bias_fc1 = tf.Variable(tf.zeros(self.bias_fc1.get_shape()))
+		self.g_val_weights_output = tf.Variable(tf.zeros(self.weights_output.get_shape()))
+		self.g_val_bias_output = tf.Variable(tf.zeros(self.bias_output.get_shape()))
+
+		self.g2_val_weights_conv1 = tf.Variable(tf.zeros(self.weights_conv1.get_shape()))
+		self.g2_val_bias_conv1 = tf.Variable(tf.zeros(self.bias_conv1.get_shape()))
+		self.g2_val_weights_conv2 = tf.Variable(tf.zeros(self.weights_conv2.get_shape()))
+		self.g2_val_bias_conv2 = tf.Variable(tf.zeros(self.bias_conv2.get_shape()))
+		self.g2_val_weights_conv3 = tf.Variable(tf.zeros(self.weights_conv3.get_shape()))
+		self.g2_val_bias_conv3 = tf.Variable(tf.zeros(self.bias_conv3.get_shape()))
+		self.g2_val_weights_fc1 = tf.Variable(tf.zeros(self.weights_fc1.get_shape()))
+		self.g2_val_bias_fc1 = tf.Variable(tf.zeros(self.bias_fc1.get_shape()))
+		self.g2_val_weights_output = tf.Variable(tf.zeros(self.weights_output.get_shape()))
+		self.g2_val_bias_output = tf.Variable(tf.zeros(self.bias_output.get_shape()))
+
+		#following deepmind's notation
+		self.g = [self.g_val_weights_conv1, self.g_val_bias_conv1, self.g_val_weights_conv2, self.g_val_bias_conv2,
+					self.g_val_weights_conv3, self.g_val_bias_conv3, self.g_val_weights_fc1, self.g_val_bias_fc1, 
+					self.g_val_weights_output, self.g_val_bias_output]
+		self.g2 = [self.g2_val_weights_conv1, self.g2_val_bias_conv1, self.g2_val_weights_conv2, self.g2_val_bias_conv2,
+					self.g2_val_weights_conv3, self.g2_val_bias_conv3, self.g2_val_weights_fc1, self.g2_val_bias_fc1, 
+					self.g2_val_weights_output, self.g2_val_bias_output]
+		
+		#grads_and_vars = optimizer.compute_gradients(self.loss, )
+		variables = [self.weights_conv1,
+			self.bias_conv1,
+			self.weights_conv2,
+			self.bias_conv2,
+			self.weights_conv3,
+			self.bias_conv3,
+			self.weights_fc1,
+			self.bias_fc1,
+			self.weights_output,
+			self.bias_output
+		]
+
+		grads = tf.gradients(self.loss, variables)
+		gradients = []
+		for grad in grads:
+			gradients.append(grad)
+
+		update_g = [g_val.assign(0.95 * g_val + 0.05 * grad) for g_val, grad in zip(self.g, gradients)]
+		
+		update_g2 = [g2_val.assign(0.95 * g2_val + 0.05 * tf.square(grad)) for g2_val, grad in zip(self.g2, gradients)]
+
+		rms = [tf.sqrt(g2_val - tf.square(g_val) + 0.01) for g_val, g2_val in zip(self.g, self.g2)]
+
+		rms_update = [gradient/rms_val for gradient, rms_val in zip(gradients, rms)]
+
+		#https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/ops/control_flow_ops.py
+		g_updates = update_g + update_g2
+
+		training = optimizer.apply_gradients(zip(rms_update, variables))
+		self.train_rms_prop = tf.group(training, tf.group(*(g_updates)))
