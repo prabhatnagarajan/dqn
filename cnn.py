@@ -92,11 +92,7 @@ class NatureCNN():
 		self.diff = self.target - batch_Q
 
 		#Loss function
-		self.loss = tf.reduce_mean(clip_error(self.diff))	
-
-		#Train with RMS Prop
-		#TODO perhaps remove epsilon and allow default
-		self.train_agent = tf.train.RMSPropOptimizer(learning_rate, momentum=momentum, epsilon=0.01).minimize(self.loss)	
+		self.loss = tf.reduce_mean(clip_error(self.diff))		
 
 		# Deepmind RMSProp
 		optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)	

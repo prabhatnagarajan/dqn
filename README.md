@@ -8,13 +8,18 @@ The status of this repository is 'Working'. There are a few details that are dif
 
 - Python 2.7
 - Arcade Learning Environment
-- Avconv
 - SciPy
 - TensorFlow 0.12.0
 - opencv-python-3.2.0.6
+- ImageMagick (often doesn't need to be installed)
 
 ## API
- - TODO
+# train.py
+Contains the core training loop. This is where the program enters.
+# dqn.py
+Contains the agent. This file has the action selection. This is where the training step is called, and where the training inputs are passed in. This file also loads the saved networks and creates the networks.
+# cnn.py
+Contains the network architecture and the the RMSProp training step.
 
 ## References
 I used a number of references in building this. I apologize for any references I may have excluded.
