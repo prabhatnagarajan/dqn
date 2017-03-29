@@ -52,7 +52,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
         total_reward = 0
         while not ale.game_over():
             state = get_state(seq, hist_len)
-            action = agent.get_action(state)
+            action = agent.get_action_best_network(state, epsilon)
             #skip frames by repeating action
             reward = 0
             for i in range(act_rpt):

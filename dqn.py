@@ -51,7 +51,7 @@ class DQN:
 		self.best_net.bias_conv3.assign(self.prediction_net.bias_conv3),
 		self.best_net.bias_fc1.assign(self.prediction_net.bias_fc1),
 		self.best_net.bias_output.assign(self.prediction_net.bias_output)]
-		
+
 
 		self.checkpoint_directory = CHECKPOINT_DIR + "/" + rom
 
@@ -104,6 +104,17 @@ class DQN:
 		else:
 			print "No saved weights. Beginning with random weights."
 
+	def get_action_best_network(self, state, epsilon):
+		rand = uniform(0,1)
+		if (rand < epsilon):
+			return self.minimal_action_set[randrange(len(self.minimal_action_set))]
+		else:
+			#Choose greedy action
+			mod_state = np.array([state], dtype=np.float32)
+			q_vals = self.best_net.q.eval(
+	        		feed_dict = {self.best_net.state: mod_state})[0]
+			return self.minimal_action_set[np.argmax(q_vals)]
+
 	def eGreedy_action(self, state, epsilon):
 		rand = uniform(0,1)
 		if (rand < epsilon):
@@ -134,6 +145,9 @@ class DQN:
 
 	def copy_network(self):
 		self.session.run(self.reset_target_network)
+
+	def update_best_scoring_network(self):
+		self.session.run(self.update_best_network)
 	
 	def sample_minibatch(self, replay_memory, minibatch_size):
 		return random.sample(replay_memory, minibatch_size)

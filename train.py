@@ -14,6 +14,9 @@ from time import time
 from constants import *
 
 Experience = namedtuple('Experience', 'state action reward new_state game_over')
+reward_history = []
+reward_counts = []
+episode_counts = []
 
 def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACITY, hist_len=HIST_LEN, tgt_update_freq=TGT_UPDATE_FREQ,
     discount=DISCOUNT, act_rpt=ACT_REPEAT, upd_freq=UPDATE_FREQ, learning_rate=LEARNING_RATE, grad_mom=GRADIENT_MOMENTUM,
@@ -116,6 +119,8 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 agent.set_epsilon(epsilon)
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
+                if num_frames % EVAL_FREQ == 0:
+                    validate(ale, agent, no_op_max, hist_len)
             num_frames = num_frames + 1
             '''
             Inconsistency in Deepmind code versus Paper. In code they update target
@@ -138,12 +143,11 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
 
     print "Number " + str(num_frames)
 
-def validate(agent, ale, no_op_max, preprocess_stack, seq, hist_len):
+def validate(ale, agent, no_op_max, hist_len):
     ale.reset_game()
     seq = list()
     preprocess_stack = deque([], 2)
     perform_no_ops(ale, no_op_max, preprocess_stack, seq)
-
     total_reward = 0
     num_rewards = 0
     num_episodes = 0
@@ -164,6 +168,11 @@ def validate(agent, ale, no_op_max, preprocess_stack, seq, hist_len):
             seq = list()
             perform_no_ops(ale, no_op_max, preprocess_stack, seq)
     total_reward = total_reward/max(1, num_episodes)
+    if len(reward_history) == 0 or total_reward > max(reward_history):
+        agent.update_best_scoring_network()
+    reward_history.append(total_reward)
+    reward_counts.append(num_rewards)
+    episode_counts.append(num_episodes)
 
 #Returns hist_len most preprocessed frames and memory
 def get_experience(seq, action, reward, hist_len, episode_done):
