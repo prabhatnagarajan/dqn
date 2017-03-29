@@ -14,11 +14,11 @@ The status of this repository is 'Working'. There are a few details that are dif
 - ImageMagick (often doesn't need to be installed)
 
 ## API
-# train.py
+### train.py
 Contains the core training loop. This is where the program enters.
-# dqn.py
+### dqn.py
 Contains the agent. This file has the action selection. This is where the training step is called, and where the training inputs are passed in. This file also loads the saved networks and creates the networks.
-# cnn.py
+### cnn.py
 Contains the network architecture and the the RMSProp training step.
 
 ## References
