@@ -100,7 +100,7 @@ class DQN:
 			return self.minimal_action_set[np.argmax(q_vals)]
 
 	def get_action(self, state):
-		return eGreedy_action(self.epsilon)
+		return self.eGreedy_action(state, self.epsilon)
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon

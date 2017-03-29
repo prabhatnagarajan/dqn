@@ -138,13 +138,14 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
 
     print "Number " + str(num_frames)
 
-def validate(dqn, ale, no_op_max, preprocess_stack, seq):
+def validate(agent, ale, no_op_max, preprocess_stack, seq, hist_len):
     ale.reset_game()
     seq = list()
     preprocess_stack = deque([], 2)
     perform_no_ops(ale, no_op_max, preprocess_stack, seq)
     for _ in range(EVAL_STEPS):
-        print "Need to fill"
+        state = get_state(seq, hist_len)
+        action = agent.eGreedy_action(state, TEST_EPSILON)
 
 
 #Returns hist_len most preprocessed frames and memory
