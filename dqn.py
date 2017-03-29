@@ -38,7 +38,7 @@ class DQN:
 		self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1),
 		self.target_net.bias_output.assign(self.prediction_net.bias_output)]
 
-		self.checkpoint_directory = CHECKPOINT_DIR
+		self.checkpoint_directory = CHECKPOINT_DIR + "/" + rom
 
 		self.session.run(tf.global_variables_initializer())
 

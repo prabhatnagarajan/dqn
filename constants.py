@@ -27,5 +27,7 @@ CHECKPOINT_DIR="checkpoints"
 CHECKPOINT_FREQUENCY=10000
 #Saving repay memory, epsilon, etc.
 TRAIN_SAVE_FREQUENCY=500000
-#Testing Constants
+#Evaluation Parameters
+EVAL_FREQ = 250000
+EVAL_STEPS = 125000
 

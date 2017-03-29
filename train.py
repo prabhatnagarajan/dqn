@@ -78,13 +78,11 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
         #initialize sequence with initial image
         seq = list()
 
-        #proc_seq.append(pp.preprocess(seq))
         perform_no_ops(ale, no_op_max, preprocess_stack, seq)
         total_reward = 0
         lives = ale.lives()
         episode_done = False
         while not episode_done:
-            #state = get_state(proc_seq, hist_len)
             state = get_state(seq, hist_len)
             action = agent.get_action(state)
             reward = 0
@@ -139,6 +137,15 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
         episode_num = episode_num + 1
 
     print "Number " + str(num_frames)
+
+def validate(dqn, ale, no_op_max, preprocess_stack, seq):
+    ale.reset_game()
+    seq = list()
+    preprocess_stack = deque([], 2)
+    perform_no_ops(ale, no_op_max, preprocess_stack, seq)
+    for _ in range(EVAL_STEPS):
+        print "Need to fill"
+
 
 #Returns hist_len most preprocessed frames and memory
 def get_experience(seq, action, reward, hist_len, episode_done):
