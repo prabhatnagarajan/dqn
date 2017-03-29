@@ -21,7 +21,7 @@ The status of this repository is 'Working'. There are a few details that are dif
 
 ## Results
 
-![alt tag](http://url/to/img.png)
+![breakout](http://url/to/img.png)
 
 ## License
 
