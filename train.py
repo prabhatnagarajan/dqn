@@ -143,10 +143,27 @@ def validate(agent, ale, no_op_max, preprocess_stack, seq, hist_len):
     seq = list()
     preprocess_stack = deque([], 2)
     perform_no_ops(ale, no_op_max, preprocess_stack, seq)
+
+    total_reward = 0
+    num_rewards = 0
+    num_episodes = 0
+    episode_reward = 0
+    eval_time = time()
     for _ in range(EVAL_STEPS):
         state = get_state(seq, hist_len)
         action = agent.eGreedy_action(state, TEST_EPSILON)
-
+        reward = ale.act(action)
+        episode_reward += reward
+        if not (reward == 0):
+            num_rewards += 1
+        if ale.game_over():
+            total_reward += episode_reward
+            episode_reward = 0
+            num_episodes += 1
+            ale.reset_game()
+            seq = list()
+            perform_no_ops(ale, no_op_max, preprocess_stack, seq)
+    total_reward = total_reward/max(1, num_episodes)
 
 #Returns hist_len most preprocessed frames and memory
 def get_experience(seq, action, reward, hist_len, episode_done):

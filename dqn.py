@@ -22,6 +22,7 @@ class DQN:
 		self.chkpt_freq = CHECKPOINT_FREQUENCY
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
+		self.best_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.rom = rom		
 		self.reset_target_network = [
 		#Copy Weights
@@ -36,6 +37,21 @@ class DQN:
 		self.target_net.bias_conv3.assign(self.prediction_net.bias_conv3),
 		self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1),
 		self.target_net.bias_output.assign(self.prediction_net.bias_output)]
+
+		self.update_best_network = [
+		#Copy Weights
+		self.best_net.weights_conv1.assign(self.prediction_net.weights_conv1),
+		self.best_net.weights_conv2.assign(self.prediction_net.weights_conv2),
+		self.best_net.weights_conv3.assign(self.prediction_net.weights_conv3),
+		self.best_net.weights_fc1.assign(self.prediction_net.weights_fc1),
+		self.best_net.weights_output.assign(self.prediction_net.weights_output),
+		#Copy Bias
+		self.best_net.bias_conv1.assign(self.prediction_net.bias_conv1),
+		self.best_net.bias_conv2.assign(self.prediction_net.bias_conv2),
+		self.best_net.bias_conv3.assign(self.prediction_net.bias_conv3),
+		self.best_net.bias_fc1.assign(self.prediction_net.bias_fc1),
+		self.best_net.bias_output.assign(self.prediction_net.bias_output)]
+		
 
 		self.checkpoint_directory = CHECKPOINT_DIR + "/" + rom
 
