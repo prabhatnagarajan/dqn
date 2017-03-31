@@ -85,7 +85,19 @@ class DQN:
 			self.target_net.bias_conv2,
 			self.target_net.bias_conv3,
 			self.target_net.bias_fc1,
-			self.target_net.bias_output
+			self.target_net.bias_output,
+			#Weights best
+			self.best_net.weights_conv1,
+			self.best_net.weights_conv2,
+			self.best_net.weights_conv3,
+			self.best_net.weights_fc1,
+			self.best_net.weights_output,
+			#bias best
+			self.best_net.bias_conv1,
+			self.best_net.bias_conv2,
+			self.best_net.bias_conv3,
+			self.best_net.bias_fc1,
+			self.best_net.bias_output
 			]
 		#add rms prop variables
 		var_list.extend(self.prediction_net.g)

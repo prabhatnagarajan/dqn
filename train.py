@@ -78,7 +78,6 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
 
     episode_num = 1
     while num_frames < TRAINING_FRAMES:
-        #initialize sequence with initial image
         seq = list()
 
         perform_no_ops(ale, no_op_max, preprocess_stack, seq)
@@ -97,11 +96,8 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 preprocess_stack.append(ale.getScreenRGB())
 
             total_reward += reward
-            #cap reward
             reward = np.clip(reward, -1, 1)
 
-            #game state is just the pixels of the screen
-            #Order shouldn't matter between images
             img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
             
             #set s(t+1) = s_t, a_t, x_t+1
