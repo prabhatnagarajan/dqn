@@ -22,7 +22,8 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     discount=DISCOUNT, act_rpt=ACT_REPEAT, upd_freq=UPDATE_FREQ, learning_rate=LEARNING_RATE, grad_mom=GRADIENT_MOMENTUM,
     sgrad_mom=SQUARED_GRADIENT_MOMENTUM, min_sq_grad=MIN_SQUARED_GRADIENT, init_epsilon=INITIAL_EPSILON, fin_epsilon=FINAL_EPSILON, 
     fin_exp=FINAL_EXPLORATION_FRAME, replay_start_size=REPLAY_START_SIZE, no_op_max=NO_OP_MAX, epsilon_file=EPSILON_FILE, 
-    num_frames_file=NUM_FRAMES_FILE, memory_file=MEMORY_FILE, train_save_frequency=TRAIN_SAVE_FREQUENCY):
+    num_frames_file=NUM_FRAMES_FILE, memory_file=MEMORY_FILE, reward_hist_file=REWARD_HIST_FILE, 
+    train_save_frequency=TRAIN_SAVE_FREQUENCY):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
@@ -69,8 +70,8 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     num_frames = 0
 
 
-    if os.path.isfile(epsilon_file) and os.path.isfile(memory_file) and os.path.isfile(num_frames_file):
-        epsilon, num_frames, replay_memory= load(epsilon_file, num_frames_file, memory_file, replay_capacity)
+    if os.path.isfile(epsilon_file) and os.path.isfile(memory_file) and os.path.isfile(num_frames_file) and os.path.isfile(reward_hist_file):
+        epsilon, num_frames, replay_memory, reward_history= load(epsilon_file, num_frames_file, memory_file, replay_capacity, reward_hist_file)
 
     print "Initial epsilon value is " + str(epsilon)
     print "Replay Memory size is " + str(len(replay_memory))
@@ -129,7 +130,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 print "Done Copying"
             #Save epsilon value to a file
             if num_frames % train_save_frequency == 0:
-                save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory)
+                save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history)
 
             #we end episode if life is lost or game is over
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
@@ -214,22 +215,25 @@ def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
         preprocess_stack.append(ale.getScreenRGB())
     seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
 
-def save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory):
+def save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history):
     print "Saving info"
     np.save(epsilon_file, [epsilon])
     np.save(num_frames_file, [num_frames])
     np.save(memory_file, replay_memory)
+    np.save(reward_hist_file, reward_history)
     print "Saved info"
 
-def load(epsilon_file, num_frames_file, memory_file, replay_capacity):
+def load(epsilon_file, num_frames_file, memory_file, replay_capacity, reward_hist_file):
     "Loading Saved Training Information"
     epsilon = float(np.load(epsilon_file)[0])
     num_frames = int(np.load(num_frames_file)[0])
     memory = np.load(memory_file)
     memory = memory.tolist()
     replay_memory = deque([Experience._make(exp) for exp in memory], replay_capacity)
+    reward_history = np.load(reward_hist_file)
+    reward_history = reward_history.tolist()
     print "Loaded Training Information"
-    return (epsilon, num_frames, replay_memory)
+    return (epsilon, num_frames, replay_memory, reward_history)
 
 def rom_name(path):
     return os.path.splitext(os.path.basename(path))[0]

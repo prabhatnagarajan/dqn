@@ -23,6 +23,7 @@ NUM_THREADS=4
 NUM_FRAMES_FILE="framecount.npy"
 MEMORY_FILE="memory.npy"
 EPSILON_FILE="epsilon.npy"
+REWARD_HIST_FILE="reward_hist.npy"
 CHECKPOINT_DIR="checkpoints"
 #Checkpoint info
 CHECKPOINT_FREQUENCY=10000
