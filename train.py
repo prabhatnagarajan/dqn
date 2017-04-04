@@ -74,6 +74,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Initial epsilon value is " + str(epsilon)
     print "Replay Memory size is " + str(len(replay_memory))
     print "Num Frames passed is " + str(num_frames)
+    print "Reward History is " + str(reward_history)
 
     episode_num = 1
     while num_frames < TRAINING_FRAMES:
