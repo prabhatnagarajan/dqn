@@ -18,11 +18,11 @@ class DQN:
 		self.epsilon = epsilon
 		self.num_updates = 0
 		self.discount = discount
-		self.num_steps = 0
 		self.tgt_update_freq = tgt_update_freq
 		self.chkpt_freq = CHECKPOINT_FREQUENCY
 		self.prediction_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.target_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
+		self.best_net = NatureCNN(learning_rate, momentum, sq_momentum, hist_len, min_num_actions)
 		self.rom = rom		
 		self.reset_target_network = [
 		#Copy Weights
@@ -38,7 +38,22 @@ class DQN:
 		self.target_net.bias_fc1.assign(self.prediction_net.bias_fc1),
 		self.target_net.bias_output.assign(self.prediction_net.bias_output)]
 
-		self.checkpoint_directory = CHECKPOINT_DIR
+		self.update_best_network = [
+		#Copy Weights
+		self.best_net.weights_conv1.assign(self.prediction_net.weights_conv1),
+		self.best_net.weights_conv2.assign(self.prediction_net.weights_conv2),
+		self.best_net.weights_conv3.assign(self.prediction_net.weights_conv3),
+		self.best_net.weights_fc1.assign(self.prediction_net.weights_fc1),
+		self.best_net.weights_output.assign(self.prediction_net.weights_output),
+		#Copy Bias
+		self.best_net.bias_conv1.assign(self.prediction_net.bias_conv1),
+		self.best_net.bias_conv2.assign(self.prediction_net.bias_conv2),
+		self.best_net.bias_conv3.assign(self.prediction_net.bias_conv3),
+		self.best_net.bias_fc1.assign(self.prediction_net.bias_fc1),
+		self.best_net.bias_output.assign(self.prediction_net.bias_output)]
+
+
+		self.checkpoint_directory = CHECKPOINT_DIR + "/" + rom
 
 		self.session.run(tf.global_variables_initializer())
 
@@ -70,7 +85,19 @@ class DQN:
 			self.target_net.bias_conv2,
 			self.target_net.bias_conv3,
 			self.target_net.bias_fc1,
-			self.target_net.bias_output
+			self.target_net.bias_output,
+			#Weights best
+			self.best_net.weights_conv1,
+			self.best_net.weights_conv2,
+			self.best_net.weights_conv3,
+			self.best_net.weights_fc1,
+			self.best_net.weights_output,
+			#bias best
+			self.best_net.bias_conv1,
+			self.best_net.bias_conv2,
+			self.best_net.bias_conv3,
+			self.best_net.bias_fc1,
+			self.best_net.bias_output
 			]
 		#add rms prop variables
 		var_list.extend(self.prediction_net.g)
@@ -89,11 +116,20 @@ class DQN:
 		else:
 			print "No saved weights. Beginning with random weights."
 
-
-	def get_action(self, state):
-		self.num_steps += 1
+	def get_action_best_network(self, state, epsilon):
 		rand = uniform(0,1)
-		if (rand < self.epsilon):
+		if (rand < epsilon):
+			return self.minimal_action_set[randrange(len(self.minimal_action_set))]
+		else:
+			#Choose greedy action
+			mod_state = np.array([state], dtype=np.float32)
+			q_vals = self.best_net.q.eval(
+	        		feed_dict = {self.best_net.state: mod_state})[0]
+			return self.minimal_action_set[np.argmax(q_vals)]
+
+	def eGreedy_action(self, state, epsilon):
+		rand = uniform(0,1)
+		if (rand < epsilon):
 			return self.minimal_action_set[randrange(len(self.minimal_action_set))]
 		else:
 			#Choose greedy action
@@ -101,6 +137,9 @@ class DQN:
 			q_vals = self.prediction_net.q.eval(
 	        		feed_dict = {self.prediction_net.state: mod_state})[0]
 			return self.minimal_action_set[np.argmax(q_vals)]
+
+	def get_action(self, state):
+		return self.eGreedy_action(state, self.epsilon)
 
 	def set_epsilon(self, epsilon):
 		self.epsilon = epsilon
@@ -118,6 +157,9 @@ class DQN:
 
 	def copy_network(self):
 		self.session.run(self.reset_target_network)
+
+	def update_best_scoring_network(self):
+		self.session.run(self.update_best_network)
 	
 	def sample_minibatch(self, replay_memory, minibatch_size):
 		return random.sample(replay_memory, minibatch_size)

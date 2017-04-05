@@ -16,16 +16,20 @@ NO_OP_MAX=30
 GRADIENT_MOMENTUM=0.95
 SQUARED_GRADIENT_MOMENTUM=0.95
 MIN_SQUARED_GRADIENT=0.01
+TEST_EPSILON = 0.05
 #Extra
 NUM_THREADS=4
 #Files
 NUM_FRAMES_FILE="framecount.npy"
 MEMORY_FILE="memory.npy"
 EPSILON_FILE="epsilon.npy"
+REWARD_HIST_FILE="reward_hist.npy"
 CHECKPOINT_DIR="checkpoints"
 #Checkpoint info
 CHECKPOINT_FREQUENCY=10000
 #Saving repay memory, epsilon, etc.
 TRAIN_SAVE_FREQUENCY=500000
-#Testing Constants
+#Evaluation Parameters
+EVAL_FREQ = 250000
+EVAL_STEPS = 125000
 

@@ -1,17 +1,14 @@
 import sys
-import random
-from random import randrange
 from dqn import DQN
 from ale_python_interface import ALEInterface
 from collections import deque
 import preprocess as pp
 import numpy as np
-import cnn
 import tensorflow as tf
 import os
-#TODO Remove unused imports
+from constants import *
 
-def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=0.01, epsilon=0.05, 
+def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=0.01, epsilon=TEST_EPSILON, 
     no_op_max=30, num_tests=30, learning_rate=0.00025, momentum=0.95, sq_momentum=0.95):
     #Create ALE object
     if len(sys.argv) < 2:
@@ -55,7 +52,7 @@ def test(session, hist_len=4, discount=0.99, act_rpt=4, upd_freq=4, min_sq_grad=
         total_reward = 0
         while not ale.game_over():
             state = get_state(seq, hist_len)
-            action = agent.get_action(state)
+            action = agent.get_action_best_network(state, epsilon)
             #skip frames by repeating action
             reward = 0
             for i in range(act_rpt):

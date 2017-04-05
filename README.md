@@ -29,6 +29,7 @@ I used a number of references in building this. I apologize for any references I
 - [DQN-tensorflow](https://github.com/devsisters/DQN-tensorflow)
 - [DeepMind-Atari-Deep-Q-Learner](https://github.com/kuz/DeepMind-Atari-Deep-Q-Learner)
 - [simple_dqn](https://github.com/tambetm/simple_dqn)
+- [DRL](https://github.com/cgel/DRL) 
 - [Discussion](https://github.com/dennybritz/reinforcement-learning/issues/30)
 
 ## Results

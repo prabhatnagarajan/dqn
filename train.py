@@ -19,13 +19,15 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     discount=DISCOUNT, act_rpt=ACT_REPEAT, upd_freq=UPDATE_FREQ, learning_rate=LEARNING_RATE, grad_mom=GRADIENT_MOMENTUM,
     sgrad_mom=SQUARED_GRADIENT_MOMENTUM, min_sq_grad=MIN_SQUARED_GRADIENT, init_epsilon=INITIAL_EPSILON, fin_epsilon=FINAL_EPSILON, 
     fin_exp=FINAL_EXPLORATION_FRAME, replay_start_size=REPLAY_START_SIZE, no_op_max=NO_OP_MAX, epsilon_file=EPSILON_FILE, 
-    num_frames_file=NUM_FRAMES_FILE, memory_file=MEMORY_FILE, train_save_frequency=TRAIN_SAVE_FREQUENCY):
+    num_frames_file=NUM_FRAMES_FILE, memory_file=MEMORY_FILE, reward_hist_file=REWARD_HIST_FILE, 
+    train_save_frequency=TRAIN_SAVE_FREQUENCY):
     #Create ALE object
     if len(sys.argv) < 2:
       print 'Usage:', sys.argv[0], 'rom_file'
       sys.exit()
-
     ale = ALEInterface()
+
+    reward_history = []
 
     # Get & Set the desired settings
     ale.setInt('random_seed', 123)
@@ -66,25 +68,23 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     num_frames = 0
 
 
-    if os.path.isfile(epsilon_file) and os.path.isfile(memory_file) and os.path.isfile(num_frames_file):
-        epsilon, num_frames, replay_memory= load(epsilon_file, num_frames_file, memory_file, replay_capacity)
+    if os.path.isfile(epsilon_file) and os.path.isfile(memory_file) and os.path.isfile(num_frames_file) and os.path.isfile(reward_hist_file):
+        epsilon, num_frames, replay_memory, reward_history= load(epsilon_file, num_frames_file, memory_file, replay_capacity, reward_hist_file)
 
     print "Initial epsilon value is " + str(epsilon)
     print "Replay Memory size is " + str(len(replay_memory))
     print "Num Frames passed is " + str(num_frames)
+    print "Reward History is " + str(reward_history)
 
     episode_num = 1
     while num_frames < TRAINING_FRAMES:
-        #initialize sequence with initial image
         seq = list()
 
-        #proc_seq.append(pp.preprocess(seq))
         perform_no_ops(ale, no_op_max, preprocess_stack, seq)
         total_reward = 0
         lives = ale.lives()
         episode_done = False
         while not episode_done:
-            #state = get_state(proc_seq, hist_len)
             state = get_state(seq, hist_len)
             action = agent.get_action(state)
             reward = 0
@@ -96,11 +96,8 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 preprocess_stack.append(ale.getScreenRGB())
 
             total_reward += reward
-            #cap reward
             reward = np.clip(reward, -1, 1)
 
-            #game state is just the pixels of the screen
-            #Order shouldn't matter between images
             img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
             
             #set s(t+1) = s_t, a_t, x_t+1
@@ -118,6 +115,8 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 agent.set_epsilon(epsilon)
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
+                if num_frames % EVAL_FREQ == 0:
+                    validate(ale, agent, no_op_max, hist_len, reward_history, act_rpt)
             num_frames = num_frames + 1
             '''
             Inconsistency in Deepmind code versus Paper. In code they update target
@@ -130,7 +129,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 print "Done Copying"
             #Save epsilon value to a file
             if num_frames % train_save_frequency == 0:
-                save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory)
+                save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history)
 
             #we end episode if life is lost or game is over
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
@@ -139,6 +138,40 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
         episode_num = episode_num + 1
 
     print "Number " + str(num_frames)
+
+def validate(ale, agent, no_op_max, hist_len, reward_history, act_rpt):
+    ale.reset_game()
+    seq = list()
+    preprocess_stack = deque([], 2)
+    perform_no_ops(ale, no_op_max, preprocess_stack, seq)
+    total_reward = 0
+    num_rewards = 0
+    num_episodes = 0
+    episode_reward = 0
+    eval_time = time()
+    for _ in range(EVAL_STEPS):
+        state = get_state(seq, hist_len)
+        action = agent.eGreedy_action(state, TEST_EPSILON)
+        reward = 0
+        for i in range(act_rpt):
+            reward += ale.act(action)
+            preprocess_stack.append(ale.getScreenRGB())
+        img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
+        seq.append(img)
+        episode_reward += reward
+        if not (reward == 0):
+            num_rewards += 1
+        if ale.game_over():
+            total_reward += episode_reward
+            episode_reward = 0
+            num_episodes += 1
+            ale.reset_game()
+            seq = list()
+            perform_no_ops(ale, no_op_max, preprocess_stack, seq)
+    total_reward = float(total_reward)/float(max(1, num_episodes))
+    if len(reward_history) == 0 or total_reward > max(reward_history):
+        agent.update_best_scoring_network()
+    reward_history.append(total_reward)
 
 #Returns hist_len most preprocessed frames and memory
 def get_experience(seq, action, reward, hist_len, episode_done):
@@ -184,22 +217,25 @@ def perform_no_ops(ale, no_op_max, preprocess_stack, seq):
         preprocess_stack.append(ale.getScreenRGB())
     seq.append(pp.preprocess(preprocess_stack[0], preprocess_stack[1]))
 
-def save(epsilon_file, num_frames_file, memory_file, epsilon, num_frames, replay_memory):
+def save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history):
     print "Saving info"
     np.save(epsilon_file, [epsilon])
     np.save(num_frames_file, [num_frames])
     np.save(memory_file, replay_memory)
+    np.save(reward_hist_file, reward_history)
     print "Saved info"
 
-def load(epsilon_file, num_frames_file, memory_file, replay_capacity):
+def load(epsilon_file, num_frames_file, memory_file, replay_capacity, reward_hist_file):
     "Loading Saved Training Information"
     epsilon = float(np.load(epsilon_file)[0])
     num_frames = int(np.load(num_frames_file)[0])
     memory = np.load(memory_file)
     memory = memory.tolist()
     replay_memory = deque([Experience._make(exp) for exp in memory], replay_capacity)
+    reward_history = np.load(reward_hist_file)
+    reward_history = reward_history.tolist()
     print "Loaded Training Information"
-    return (epsilon, num_frames, replay_memory)
+    return (epsilon, num_frames, replay_memory, reward_history)
 
 def rom_name(path):
     return os.path.splitext(os.path.basename(path))[0]
