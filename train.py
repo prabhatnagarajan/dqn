@@ -116,7 +116,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 if num_frames % upd_freq == 0:
                     agent.train(replay_memory, minibatch_size) 
                 if num_frames % EVAL_FREQ == 0:
-                    validate(ale, agent, no_op_max, hist_len, reward_history)
+                    validate(ale, agent, no_op_max, hist_len, reward_history, act_rpt)
             num_frames = num_frames + 1
             '''
             Inconsistency in Deepmind code versus Paper. In code they update target
@@ -139,7 +139,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
 
     print "Number " + str(num_frames)
 
-def validate(ale, agent, no_op_max, hist_len, reward_history):
+def validate(ale, agent, no_op_max, hist_len, reward_history, act_rpt):
     ale.reset_game()
     seq = list()
     preprocess_stack = deque([], 2)
@@ -152,7 +152,12 @@ def validate(ale, agent, no_op_max, hist_len, reward_history):
     for _ in range(EVAL_STEPS):
         state = get_state(seq, hist_len)
         action = agent.eGreedy_action(state, TEST_EPSILON)
-        reward = ale.act(action)
+        reward = 0
+        for i in range(act_rpt):
+            reward += ale.act(action)
+            preprocess_stack.append(ale.getScreenRGB())
+        img = pp.preprocess(preprocess_stack[0], preprocess_stack[1])
+        seq.append(img)
         episode_reward += reward
         if not (reward == 0):
             num_rewards += 1
