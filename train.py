@@ -163,7 +163,7 @@ def validate(ale, agent, no_op_max, hist_len, reward_history):
             ale.reset_game()
             seq = list()
             perform_no_ops(ale, no_op_max, preprocess_stack, seq)
-    total_reward = total_reward/max(1, num_episodes)
+    total_reward = float(total_reward)/float(max(1, num_episodes))
     if len(reward_history) == 0 or total_reward > max(reward_history):
         agent.update_best_scoring_network()
     reward_history.append(total_reward)
