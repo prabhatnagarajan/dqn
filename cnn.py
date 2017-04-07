@@ -1,6 +1,7 @@
 import tensorflow as tf
 import math
 from pdb import set_trace
+from constants import *
 
 def linear_weight_var(shape):
    stdv = 1.0/math.sqrt(shape[0])
@@ -145,11 +146,11 @@ class NatureCNN():
 		for grad in grads:
 			gradients.append(grad)
 
-		update_g = [g_val.assign(0.95 * g_val + 0.05 * grad) for g_val, grad in zip(self.g, gradients)]
+		update_g = [g_val.assign(GRADIENT_MOMENTUM * g_val + (1 - GRADIENT_MOMENTUM) * grad) for g_val, grad in zip(self.g, gradients)]
 		
-		update_g2 = [g2_val.assign(0.95 * g2_val + 0.05 * tf.square(grad)) for g2_val, grad in zip(self.g2, gradients)]
+		update_g2 = [g2_val.assign(SQUARED_GRADIENT_MOMENTUM * g2_val + (1 - SQUARED_GRADIENT_MOMENTUM) * tf.square(grad)) for g2_val, grad in zip(self.g2, gradients)]
 
-		rms = [tf.sqrt(g2_val - tf.square(g_val) + 0.01) for g_val, g2_val in zip(self.g, self.g2)]
+		rms = [tf.sqrt(g2_val - tf.square(g_val) + MIN_SQUARED_GRADIENT) for g_val, g2_val in zip(self.g, self.g2)]
 
 		rms_update = [gradient/rms_val for gradient, rms_val in zip(gradients, rms)]
 

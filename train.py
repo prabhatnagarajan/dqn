@@ -76,6 +76,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Num Frames passed is " + str(num_frames)
     print "Reward History is " + str(reward_history)
 
+    start_time = time()
     episode_num = 1
     while num_frames < TRAINING_FRAMES:
         seq = list()
@@ -128,9 +129,18 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 agent.copy_network()
                 print "Done Copying"
             #Save epsilon value to a file
-            if num_frames % train_save_frequency == 0:
+            if SAVE_ON_TIME:
+                should_save = (time() - start_time) > TRAIN_SAVE_FREQUENCY
+            else:
+                should_save = num_frames % train_save_frequency == 0
+            if should_save:
                 save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history)
-
+                if EXIT_ON_SAVE:
+                    if SAVE_ON_TIME:
+                        print "Exiting after " + str(time() - start_time) + " seconds."
+                    else:
+                        print "Exiting after " + str(num_frames) + " frames."
+                    exit()
             #we end episode if life is lost or game is over
         print('Episode '+ str(episode_num) +' ended with score: %d' % (total_reward))
         print "Number of frames is " + str(num_frames)
@@ -140,6 +150,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Number " + str(num_frames)
 
 def validate(ale, agent, no_op_max, hist_len, reward_history, act_rpt):
+    print "Validating..."
     ale.reset_game()
     seq = list()
     preprocess_stack = deque([], 2)
@@ -172,6 +183,9 @@ def validate(ale, agent, no_op_max, hist_len, reward_history, act_rpt):
     if len(reward_history) == 0 or total_reward > max(reward_history):
         agent.update_best_scoring_network()
     reward_history.append(total_reward)
+    print "Validation Reward Average is: " + str(total_reward)
+    print "Done validating..."
+    print "Reward History is... " + str(reward_history)
 
 #Returns hist_len most preprocessed frames and memory
 def get_experience(seq, action, reward, hist_len, episode_done):

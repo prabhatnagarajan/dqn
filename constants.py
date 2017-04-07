@@ -27,8 +27,16 @@ REWARD_HIST_FILE="reward_hist.npy"
 CHECKPOINT_DIR="checkpoints"
 #Checkpoint info
 CHECKPOINT_FREQUENCY=10000
-#Saving repay memory, epsilon, etc.
+
+##Saving Memory, Epsilon, Episodes, training info etc.
+#After how many frames should we save
 TRAIN_SAVE_FREQUENCY=500000
+#After how much time should we save
+TRAIN_TIME_SAVE_FREQUENCY=39600
+#Either save after a certain amount of time or a certain amount of frames
+SAVE_ON_TIME=True
+EXIT_ON_SAVE=True
+
 #Evaluation Parameters
 EVAL_FREQ = 250000
 EVAL_STEPS = 125000
