@@ -10,6 +10,7 @@ import preprocess as pp
 import numpy as np
 import cnn
 import tensorflow as tf
+from monotonic import monotonic
 from time import time
 from constants import *
 
@@ -76,7 +77,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
     print "Num Frames passed is " + str(num_frames)
     print "Reward History is " + str(reward_history)
 
-    start_time = time()
+    start_time = monotonic()
     episode_num = 1
     while num_frames < TRAINING_FRAMES:
         seq = list()
@@ -130,12 +131,13 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
                 print "Done Copying"
             #Save epsilon value to a file
             if SAVE_ON_TIME:
-                should_save = (time() - start_time) > TRAIN_SAVE_FREQUENCY
+                should_save = (monotonic() - start_time) > TRAIN_TIME_SAVE_FREQUENCY
             else:
                 should_save = num_frames % train_save_frequency == 0
             if should_save:
                 save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history)
                 if EXIT_ON_SAVE:
+                    dqn.saver.save(dqn.session, os.path.join(dqn.checkpoint_directory, dqn.rom), global_step = dqn.counter + dqn.num_updates)
                     if SAVE_ON_TIME:
                         print "Exiting after " + str(time() - start_time) + " seconds."
                     else:

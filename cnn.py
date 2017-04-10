@@ -52,17 +52,17 @@ class NatureCNN():
 		and applies a rectifier nonlinearity. Then stores output of first
 		hidden layer in conv_layer_1
 		'''
-		#Convolutional Layer 1 - outputs batches x 21 x 21 x 32
+		#Convolutional Layer 1 - outputs batches x 20 x 20 x 32
 		self.weights_conv1 = conv_weight_var([8, 8, 4, 32], 4, 8, 8)
 		self.bias_conv1 = conv_bias_var([32], 4, 8, 8)
 		conv_layer_1 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(self.state, self.weights_conv1, strides=[1, 4, 4, 1], padding="VALID"), self.bias_conv1))
 
-		#Convolutional Layer 2 - outputs batches x 11 x 11 x 64
+		#Convolutional Layer 2 - outputs batches x 9 x 9 x 64
 		self.weights_conv2 = conv_weight_var([4, 4, 32, 64], 32, 4, 4)
 		self.bias_conv2 = conv_bias_var([64], 32, 4, 4)
 		conv_layer_2 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv_layer_1, self.weights_conv2, strides=[1, 2, 2, 1], padding="VALID"), self.bias_conv2))
 
-		#Convolutional Layer 3 - outputs batches x 11 x 11 x 64
+		#Convolutional Layer 3 - outputs batches x 7 x 7 x 64
 		self.weights_conv3 = conv_weight_var([3, 3, 64, 64], 64, 3, 3)
 		self.bias_conv3 = conv_bias_var([64], 64, 3, 3)
 		conv_layer_3 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv_layer_2, self.weights_conv3, strides=[1, 1, 1, 1], padding="VALID"), self.bias_conv3))

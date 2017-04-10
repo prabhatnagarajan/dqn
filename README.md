@@ -12,6 +12,7 @@ The status of this repository is 'Working'. There are a few details that are dif
 - TensorFlow 0.12.0
 - opencv-python-3.2.0.6
 - ImageMagick (often doesn't need to be installed)
+- monotonic
 
 ## API
 ### train.py
