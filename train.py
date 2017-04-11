@@ -137,7 +137,7 @@ def train(session, minibatch_size=MINIBATCH_SIZE, replay_capacity=REPLAY_CAPACIT
             if should_save:
                 save(epsilon_file, num_frames_file, memory_file, reward_hist_file, epsilon, num_frames, replay_memory, reward_history)
                 if EXIT_ON_SAVE:
-                    dqn.saver.save(dqn.session, os.path.join(dqn.checkpoint_directory, dqn.rom), global_step = dqn.counter + dqn.num_updates)
+                    agent.saver.save(dqn.session, os.path.join(agent.checkpoint_directory, agent.rom), global_step = agent.counter + agent.num_updates)
                     if SAVE_ON_TIME:
                         print "Exiting after " + str(time() - start_time) + " seconds."
                     else:
