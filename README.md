@@ -1,3 +1,6 @@
+# NOTE
+This repository is no longer supported. For a higher quality Python implementation, see [this repository](https://github.com/prabhatnagarajan/repro_dqn)
+
 # dqn
 This repository contains a python implementation of [Human-Level Control through Deep Reinforcement Learning](http://home.uchicago.edu/~arij/journalclub/papers/2015_Mnih_et_al.pdf) using Python and Tensorflow. This is done in the Arcade Learning Environment, as in the original paper.
 
